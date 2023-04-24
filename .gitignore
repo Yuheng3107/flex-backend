@@ -1,0 +1,6 @@
+.vscode/*
+*.mp4
+*.zip
+*.pyc
+*.env
+*/__pycache__
