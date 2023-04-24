@@ -33,12 +33,9 @@ jobs:
           pip3 install pipenv
       - name: Install Dependencies
         run: |
-          cd ./backend
-          pwd
           pipenv install
       - name: Run Tests
         run: |
-          cd ./backend
           pipenv run python manage.py check
           pipenv run python manage.py test
       - name: Merge dev branch into prod
