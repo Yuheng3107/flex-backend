@@ -28,7 +28,8 @@ SECRET_KEY = 'django-insecure-%z(y*@&b8ve)cdaa7lm7(yj07&#c2y2am_%b8zzv(apc-5kiay
 # SECURITY WARNING: don't run with debug turned on in production!
 
 DEBUG = not USE_S3
-ALLOWED_HOSTS = ['localhost', '0.0.0.0', '127.0.0.1', 'fitai.click', '175.41.169.18']
+ALLOWED_HOSTS = ['localhost', '0.0.0.0',
+                 '127.0.0.1', 'fitai.click', '175.41.169.18']
 
 
 # Application definition
@@ -110,26 +111,26 @@ CHANNEL_LAYERS = {
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 if not DEBUG:
     DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'postgres',
-        'USER': 'postgres',
-        'PASSWORD': 'Password1234',
-        'HOST': 'flex.ccffjzlp3u3k.ap-southeast-1.rds.amazonaws.com',
-        'PORT': '5432',
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            'NAME': 'postgres',
+            'USER': 'postgres',
+            'PASSWORD': 'Password1234',
+            'HOST': 'flex.ccffjzlp3u3k.ap-southeast-1.rds.amazonaws.com',
+            'PORT': '5432',
+        }
     }
-}
-else: 
+else:
     DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'flex',
-        'USER': 'admin',
-        'PASSWORD': 'P@ssword1234',
-        'HOST': '127.0.0.1',
-        'PORT': '5432',
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            'NAME': 'flex',
+            'USER': 'admin',
+            'PASSWORD': 'P@ssword1234',
+            'HOST': '127.0.0.1',
+            'PORT': '5432',
+        }
     }
-}
 
 
 # Password validation
@@ -175,7 +176,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_ALL_ORIGINS = True
-CSRF_TRUSTED_ORIGINS = ['http://fitai.click', 'http://localhost']
+CSRF_TRUSTED_ORIGINS = ['http://fitai.click',
+                        'http://localhost', 'http://175.41.169.18/']
 
 # Custom User Model
 AUTH_USER_MODEL = 'users.AppUser'
