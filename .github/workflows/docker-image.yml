@@ -2,28 +2,24 @@ name: Docker Image CD Pipeline
 
 on:
   push:
-    branches: [ "prod" ]
+    branches: ["prod"]
   pull_request:
-    branches: [ "prod" ]
+    branches: ["prod"]
 
 jobs:
-
   build:
-
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
-    - name: Docker Login
-      env:
-        DOCKER_USER: ${{secrets.DOCKER_USER}}
-        DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
-      run: |
-        docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
-    - name: Build the Docker image
-      run: |
-        cd ./backend
-        docker build . --file Dockerfile --tag yuheng3107/django-server:latest
-    - name: Push Artifact to Docker Hub
-      run: docker push ${{secrets.DOCKER_USER}}/django-server
-    
+      - uses: actions/checkout@v3
+      - name: Docker Login
+        env:
+          DOCKER_USER: ${{secrets.DOCKER_USER}}
+          DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
+        run: |
+          docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
+      - name: Build the Docker image
+        run: |
+          docker build . --file Dockerfile --tag yuheng3107/django-server:latest
+      - name: Push Artifact to Docker Hub
+        run: docker push ${{secrets.DOCKER_USER}}/django-server
