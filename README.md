@@ -1,7 +1,7 @@
 # Backend for Flex Application
 
 ![Django CI Tests Status](https://github.com/Yuheng3107/flex-backend/actions/workflows/django.yml/badge.svg?branch=dev)
-
+[![Docker Image CD Pipeline](https://github.com/Yuheng3107/flex-backend/actions/workflows/docker-image.yml/badge.svg?branch=prod)](https://github.com/Yuheng3107/flex-backend/actions/workflows/docker-image.yml)
 ## To use virtual environment
 
 do `pip install pipenv` to get pipenv
