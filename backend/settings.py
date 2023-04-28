@@ -181,9 +181,12 @@ CSRF_TRUSTED_ORIGINS = ['http://fitai.click',
 
 # Custom User Model
 AUTH_USER_MODEL = 'users.AppUser'
-
-CSRF_COOKIE_SAMESITE = 'Lax'
-SESSION_COOKIE_SAMESITE = 'Lax'
+if USE_S3:
+    CSRF_COOKIE_SAMESITE = 'None'
+    SESSION_COOKIE_SAMESITE = 'None'
+else:
+    CSRF_COOKIE_SAMESITE = 'Lax'
+    SESSION_COOKIE_SAMESITE = 'Lax'
 
 # MEDIA ROOT
 
