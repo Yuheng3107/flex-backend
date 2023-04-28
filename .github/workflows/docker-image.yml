@@ -21,7 +21,9 @@ jobs:
       run: |
         docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
     - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag yuheng3107/django-server:latest
+      run: |
+        cd ./backend
+        docker build . --file Dockerfile --tag yuheng3107/django-server:latest
     - name: Push Artifact to Docker Hub
       run: docker push ${{secrets.DOCKER_USER}}/django-server
     
