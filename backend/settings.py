@@ -177,7 +177,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_ALL_ORIGINS = True
 CSRF_TRUSTED_ORIGINS = ['http://fitai.click',
-                        'http://localhost', 'http://175.41.169.18/']
+                        'http://localhost', 'http://175.41.169.18/', 'http://localhost:3000', 'https://localhost:3000', 'https://flex.fitai.click']
 
 # Custom User Model
 AUTH_USER_MODEL = 'users.AppUser'
