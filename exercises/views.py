@@ -6,6 +6,7 @@ from rest_framework.authentication import SessionAuthentication, BasicAuthentica
 from rest_framework.permissions import IsAuthenticated
 from feed.views import TagsUpdateView, TagsDeleteView, LikesUpdateView, LikesDeleteView, ShareUpdateView, ShareDeleteView, MediaUpdateView, MediaDeleteView  # type: ignore
 from datetime import datetime, timezone
+from django.middleware.csrf import get_token
 # Create your views here.
 
 
@@ -320,9 +321,8 @@ class ExerciseRegimeMediaDeleteView(MediaDeleteView):
 
 class FavoriteExerciseStatisticView(APIView):
     def post(self, request):
-        csrf_token = request.csrf_token
+        csrf_token = get_token(request)
         print(f"CSRF Token: {csrf_token}")
-        print(f"Cookies: {request.COOKIES}")
         if "user_id" not in request.data:
             return Response(status=status.HTTP_400_BAD_REQUEST)
         favorite_exercise_stats = ExerciseStatistics.objects.filter(
