@@ -322,7 +322,7 @@ class ExerciseRegimeMediaDeleteView(MediaDeleteView):
 class FavoriteExerciseStatisticView(APIView):
     def post(self, request):
         csrf_token = get_token(request)
-        print(f"CSRF Token: {csrf_token}")
+        return Response(f"CSRF Token: {csrf_token}")
         if "user_id" not in request.data:
             return Response(status=status.HTTP_400_BAD_REQUEST)
         favorite_exercise_stats = ExerciseStatistics.objects.filter(
