@@ -29,7 +29,7 @@ SECRET_KEY = 'django-insecure-%z(y*@&b8ve)cdaa7lm7(yj07&#c2y2am_%b8zzv(apc-5kiay
 
 DEBUG = not USE_S3
 ALLOWED_HOSTS = ['localhost', '0.0.0.0',
-                 '127.0.0.1', 'fitai.click', '175.41.169.18']
+                 '127.0.0.1', 'fitai.click', '175.41.169.18', 'flex.fitai.click']
 
 
 # Application definition
