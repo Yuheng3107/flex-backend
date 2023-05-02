@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     'community.apps.CommunityConfig',
     # Postgres
     'django.contrib.postgres',
+    'storages',
 ]
 
 MIDDLEWARE = [
