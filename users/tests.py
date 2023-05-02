@@ -144,6 +144,8 @@ class UserCreateViewTests(APITestCase):
         self.assertEqual(User.objects.count(), 1)
         self.assertEqual(User.objects.get(
             first_name="User").email, data["email"])
+        print(User.objects.get(
+            first_name="User"))
 
 
 class UserDetailViewTests(APITestCase):
