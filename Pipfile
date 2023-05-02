@@ -21,6 +21,7 @@ model-bakery = "*"
 psycopg2-binary = "*"
 django-storages = "==1.13.2"
 boto3 = "*"
+random-username = "*"
 
 [dev-packages]
 autopep8 = "*"

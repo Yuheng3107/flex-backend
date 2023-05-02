@@ -9,7 +9,7 @@ from community.models import Community  # type: ignore
 from exercises.models import Exercise, ExerciseRegime  # type: ignore
 from chat.models import ChatGroup  # type: ignore
 from rest_framework.parsers import FormParser, MultiPartParser
-from django.db.models import Count
+from random_username.generate import generate_username
 
 User = get_user_model()
 
@@ -28,13 +28,14 @@ class UserCreateView(APIView):
         response = HttpResponse()
         csrf_token = get_token(request)
         try:
+            # check whether email is registered already
             user = User.objects.get(email=fields["email"])
             login(request, user)
             response.write("User already in database")
-            print("User already in database")
             return response
         except User.DoesNotExist:
-            user = User.objects.create_user(**fields)
+            username = generate_username(1)[0]
+            user = User.objects.create_user(**fields, username=username)
             user.save()
             login(request, user)
             response.write("User Successfully Registered")
