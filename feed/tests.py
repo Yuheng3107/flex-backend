@@ -663,6 +663,8 @@ class DeleteLikesViewTests(APITestCase):
         self.assertEqual(updated_post.likes,likes - 1)
         # many to many checks
         self.assertFalse(updated_post.likers.all().exists())
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 class UpdateTagsViewTests(APITestCase):
     def test_update_tags(self):

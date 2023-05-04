@@ -413,6 +413,8 @@ class UpdateLikesViewTests(APITestCase):
         # many to many checks
         for x in updated_post.likers.all():
             self.assertEqual(x, user)
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
 class FavoriteExerciseViewTests(APITestCase):

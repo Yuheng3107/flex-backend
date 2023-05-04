@@ -1,6 +1,6 @@
 from rest_framework.views import APIView, Response
-from .models import Exercise, ExerciseStatistics, ExerciseRegime, ExerciseRegimeStatistics, ExerciseSession
-from .serializers import ExerciseRegimeSerializer, ExerciseSerializer, ExerciseStatisticsSerializer, ExerciseRegimeStatisticsSerializer, ExerciseSessionSerializer
+from .models import Exercise, ExerciseStatistics, ExerciseRegime, ExerciseRegimeStatistics, ExerciseSession, ExerciseRegimeInfo
+from .serializers import ExerciseRegimeSerializer, ExerciseSerializer, ExerciseStatisticsSerializer, ExerciseRegimeStatisticsSerializer, ExerciseSessionSerializer, ExerciseRegimeInfoSerializer
 from rest_framework import status
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.permissions import IsAuthenticated
@@ -24,13 +24,11 @@ class ExerciseUpdateView(APIView):
             exercise = Exercise.objects.get(pk=id)
             exercise.perfect_reps += data["perfect_reps"]
             exercise.save()
-
         return Response()
 
 
 class ExerciseDetailView(APIView):
     """Creation and deletion of an exercise is done in admin console"""
-
     def get(self, request, pk):
         """To get data for an Exercise instance"""
         try:
@@ -39,8 +37,41 @@ class ExerciseDetailView(APIView):
             return Response(serializer.data)
         except Exercise.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
+        
+class ExerciseRegimeInfoDetailView(APIView):
+    """Creation and deletion of an exercise is done in admin console"""
+    def get(self, request, pk):
+        """To get data for an Exercise instance"""
+        try:
+            exerciseRegimeInfo = ExerciseRegimeInfo.objects.filter(exercise_regime=pk)
+            serializer = ExerciseRegimeInfoSerializer(exerciseRegimeInfo)
+            return Response(serializer.data)
+        except ExerciseRegimeInfo.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
 
-
+class ExerciseRegimeInfoUpdateView(APIView):
+    def post(self,request):
+        if not request.user.is_authenticated:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        if "id" not in request.data:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        try:
+            regime = ExerciseRegime.objects.get(pk=request.data["id"])
+        except:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        fields = ["exercises", "rep_count", "set_count"]
+        for field in fields:
+            if field not in request.data:
+                return Response(f"Please add the {field} field in your request", status=status.HTTP_400_BAD_REQUEST)
+        if len(request.data["exercises"]) != len(request.data["rep_count"]) or len(request.data["exercises"]) != len(request.data["set_count"]):
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        for i, exercise in enumerate(request.data["exercises"]):
+            try:
+                ExerciseRegimeInfo.objects.create(exercise=exercise, exercise_regime=regime.id, rep_count=request.data["rep_count"][i], set_count=request.data["set_count"][i])
+            except:
+                return Response(status=status.HTTP_400_BAD_REQUEST)
+        return Response()
+    
 class ExerciseListView(APIView):
     def post(self, request):
         if "exercises" not in request.data:

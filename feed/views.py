@@ -376,7 +376,8 @@ class LikesUpdateView(APIView):
             post = self.model.objects.get(pk=request.data['id'])
         except self.model.DoesNotExist:
             return Response("Please put a valid Post id", status=status.HTTP_404_NOT_FOUND)
-
+        if post.likers.filter(id=request.user.id).exists():
+            return Response("Already liked", status=status.HTTP_400_BAD_REQUEST)
         # Adds the relations to the model
         try:
             post.likers.add(request.user)
@@ -411,7 +412,6 @@ class TagsDeleteView(APIView):
         # Check User
         if request.user != post.poster:
             return Response(f"Editing a post you did not create", status=status.HTTP_401_UNAUTHORIZED)
-
         # Adds the relations to the model
         try:
             # Unpacks foreign keys in fk_list
@@ -443,7 +443,8 @@ class LikesDeleteView(APIView):
             post = self.model.objects.get(pk=pk)
         except self.model.DoesNotExist:
             return Response("Please put a valid Post id", status=status.HTTP_404_NOT_FOUND)
-
+        if not post.likers.filter(id=request.user.id).exists():
+            return Response("Already unliked", status=status.HTTP_400_BAD_REQUEST)
         # Adds the relations to the model
         try:
             post.likers.remove(request.user)
@@ -781,7 +782,7 @@ class UserFeedView(APIView):
             community__in=communities, posted_at__range=(start_time, end_time)).order_by("-likes")[0:10], many=True).data
         followed = list(it.chain(friend_posts, community_posts))
         # recommended
-        recommended_no = math.floor(len(followed)/4)
+        recommended_no = min(math.floor(len(followed)/4),3)
         recommended_friends = UserPostSerializer(UserPost.objects.filter(posted_at__range=(
             start_time, end_time)).exclude(poster__in=friends).order_by("-likes")[0:recommended_no], many=True).data
         recommended_community = CommunityPostSerializer(CommunityPost.objects.filter(posted_at__range=(

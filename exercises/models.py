@@ -41,7 +41,7 @@ class ExerciseRegime(FeedPost):
         return self.name
 
 
-class ExerciseDetails(models.Model):
+class ExerciseRegimeInfo(models.Model):
     """
     through table for exercise and exercise regime, including exercise details.
     """
