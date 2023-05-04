@@ -214,9 +214,10 @@ class ExerciseRegimeCreateView(APIView):
 
         fields = {field: request.data[field] for field in fields}
         # Unpack the dictionary and pass them as keyword arguments to create in Exercise Regime
-        ExerciseRegime.objects.create(poster=request.user, **fields)
+        exercise_regime = ExerciseRegime.objects.create(
+            poster=request.user, **fields)
 
-        return Response(status=status.HTTP_201_CREATED)
+        return Response(exercise_regime.id, status=status.HTTP_201_CREATED)
 
 
 class ExerciseRegimeUpdateImageView(APIView):

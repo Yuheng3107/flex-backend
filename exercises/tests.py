@@ -13,6 +13,8 @@ import json
 from .models import Exercise, ExerciseStatistics, ExerciseRegime, ExerciseRegimeStatistics, ExerciseSession
 
 # Create your tests here.
+
+
 class ExerciseTestCase(TestCase):
     def test_create_exercise(self):
         User = get_user_model()
@@ -28,10 +30,10 @@ class ExerciseTestCase(TestCase):
         name = 'Test Exercise'
         baker.make(
             Exercise,
-            name = name,
-            text = content,
-            media = media,
-            poster = user,
+            name=name,
+            text=content,
+            media=media,
+            poster=user,
         )
         exercise = Exercise.objects.get()
         self.assertEqual(exercise.name, name)
@@ -57,11 +59,11 @@ class ExerciseTestCase(TestCase):
         """To test whether exercise is not deleted after founder is deleted"""
         User = get_user_model()
         user = baker.make(User)
-        exercise = baker.make(Exercise,poster=user)
+        exercise = baker.make(Exercise, poster=user)
         self.assertIsInstance(exercise, Exercise)
         exercise_id = exercise.id
         User.objects.get(pk=user.id).delete()
-        updated_exercise =  Exercise.objects.get(pk=exercise.id)
+        updated_exercise = Exercise.objects.get(pk=exercise.id)
         self.assertEqual(updated_exercise.id, exercise_id)
         self.assertEqual(updated_exercise.poster, None)
 
@@ -73,8 +75,7 @@ class ExerciseTestCase(TestCase):
         exercise.save()
         updated_exercise = Exercise.objects.get(pk=exercise.id)
         self.assertEqual(updated_exercise.text, updated_content)
-        
-        
+
 
 # Create your tests here.
 class ExerciseRegimeTestCase(TestCase):
@@ -90,14 +91,14 @@ class ExerciseRegimeTestCase(TestCase):
             'small2.gif', small_gif, content_type='image/gif')
         content = 'Lorem Ipsum blablabla'
         name = 'Test Exercise Regime'
-        exercises = [1,3,2]
+        exercises = [1, 3, 2]
         baker.make(
             ExerciseRegime,
-            name = name,
-            text = content,
-            media = media,
-            poster = user,
-            exercises = exercises,
+            name=name,
+            text=content,
+            media=media,
+            poster=user,
+            exercises=exercises,
         )
         exercise_regime = ExerciseRegime.objects.get()
         self.assertEqual(exercise_regime.name, name)
@@ -105,7 +106,6 @@ class ExerciseRegimeTestCase(TestCase):
         self.assertEqual(exercise_regime.media.name, media.name)
         self.assertEqual(exercise_regime.poster, user)
         self.assertEqual(exercise_regime.exercises, exercises)
-        
 
         # Clean up .gif file produced
         dir_path = os.getcwd()
@@ -126,11 +126,12 @@ class ExerciseRegimeTestCase(TestCase):
         """To test whether exercise_regime is not deleted after founder is deleted"""
         User = get_user_model()
         user = baker.make(User)
-        exercise_regime = baker.make(ExerciseRegime,poster=user)
+        exercise_regime = baker.make(ExerciseRegime, poster=user)
         self.assertIsInstance(exercise_regime, ExerciseRegime)
         exercise_regime_id = exercise_regime.id
         User.objects.get(pk=user.id).delete()
-        updated_exercise_regime =  ExerciseRegime.objects.get(pk=exercise_regime.id)
+        updated_exercise_regime = ExerciseRegime.objects.get(
+            pk=exercise_regime.id)
         self.assertEqual(updated_exercise_regime.id, exercise_regime_id)
         self.assertEqual(updated_exercise_regime.poster, None)
 
@@ -140,11 +141,13 @@ class ExerciseRegimeTestCase(TestCase):
         updated_content = "New Description Content"
         exercise_regime.text = updated_content
         exercise_regime.save()
-        updated_exercise_regime = ExerciseRegime.objects.get(pk=exercise_regime.id)
+        updated_exercise_regime = ExerciseRegime.objects.get(
+            pk=exercise_regime.id)
         self.assertEqual(updated_exercise_regime.text, updated_content)
 
+
 class ExerciseDetailViewTests(APITestCase):
-        
+
     def test_get_exercise_detail(self):
         exercise = baker.make(Exercise)
         url = reverse('exercise_detail', kwargs={"pk": exercise.id})
@@ -159,6 +162,7 @@ class ExerciseDetailViewTests(APITestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
+
 class ExerciseUpdateViewTests(APITestCase):
     def test_update_exercise_data(self):
         """Ensure we can update data in Exercise Model"""
@@ -168,18 +172,20 @@ class ExerciseUpdateViewTests(APITestCase):
         data = {
             "id": exercise.id,
             "perfect_reps": perfect_reps_increase
-            }
+        }
         current_reps = exercise.perfect_reps
         response = self.client.patch(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(Exercise.objects.get(pk=exercise.id).perfect_reps, current_reps+perfect_reps_increase)
+        self.assertEqual(Exercise.objects.get(
+            pk=exercise.id).perfect_reps, current_reps+perfect_reps_increase)
         # Test that view will return status code 400 when id is not in data
         data = {
             "perfect_reps": perfect_reps_increase
         }
         response = self.client.patch(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        
+
+
 class ExerciseListViewTests(APITestCase):
     def test_get_exercise_list(self):
         url = reverse('exercise_list')
@@ -196,6 +202,7 @@ class ExerciseListViewTests(APITestCase):
             self.assertEquals(exercise.id, retrieved_exercise["id"])
             self.assertEquals(exercise.text, retrieved_exercise["text"])
             self.assertEquals(exercise.name, retrieved_exercise["name"])
+
     def test_get_exercise_all(self):
         url = reverse('exercise_list')
         exercise_no = 2
@@ -209,19 +216,22 @@ class ExerciseListViewTests(APITestCase):
             self.assertEquals(exercise.text, retrieved_exercise["text"])
             self.assertEquals(exercise.name, retrieved_exercise["name"])
 
-            
+
 class ExerciseStatisticsDetailViewTests(APITestCase):
     def test_get_exercise_statistics(self):
         exercise_statistics = baker.make(ExerciseStatistics, make_m2m=True)
-        url = reverse('exercise_statistics_detail', kwargs={"pk": exercise_statistics.exercise.id})
+        url = reverse('exercise_statistics_detail', kwargs={
+                      "pk": exercise_statistics.exercise.id})
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         self.client.force_authenticate(user=exercise_statistics.user)
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = json.loads(response.content)
-        self.assertEqual(exercise_statistics.perfect_reps, data["perfect_reps"])
-        
+        self.assertEqual(exercise_statistics.perfect_reps,
+                         data["perfect_reps"])
+
+
 class ExerciseStatisticsUpdateViewTests(APITestCase):
     def test_update_exercise_statistics(self):
         """Test that we can update exercise statistics"""
@@ -245,11 +255,15 @@ class ExerciseStatisticsUpdateViewTests(APITestCase):
         self.client.force_authenticate(user=user)
         # Check that perfect reps change once user is authenticated
         response = self.client.post(url, data, format='json')
-        self.assertEqual(ExerciseStatistics.objects.filter(user=user.id).filter(exercise=exercise.id)[0].perfect_reps, perfect_reps_increase)
-        self.assertEqual(ExerciseStatistics.objects.filter(user=user.id).filter(exercise=exercise.id)[0].total_reps, total_reps_increase)
+        self.assertEqual(ExerciseStatistics.objects.filter(user=user.id).filter(
+            exercise=exercise.id)[0].perfect_reps, perfect_reps_increase)
+        self.assertEqual(ExerciseStatistics.objects.filter(user=user.id).filter(
+            exercise=exercise.id)[0].total_reps, total_reps_increase)
         exercise = Exercise.objects.get(pk=exercise.id)
-        self.assertEqual(exercise.perfect_reps, perfect_reps_increase + global_perfect_reps)
-        self.assertEqual(exercise.total_reps, total_reps_increase + global_total_reps)
+        self.assertEqual(exercise.perfect_reps,
+                         perfect_reps_increase + global_perfect_reps)
+        self.assertEqual(exercise.total_reps,
+                         total_reps_increase + global_total_reps)
         # Check that view denies malformed requests
         data = {}
         response = self.client.post(url, data, format='json')
@@ -260,6 +274,7 @@ class ExerciseStatisticsUpdateViewTests(APITestCase):
         }
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
 
 class ExerciseStatisticsCreateViewTests(APITestCase):
     def test_create_exercise_statistics(self):
@@ -277,30 +292,36 @@ class ExerciseStatisticsCreateViewTests(APITestCase):
         # Check that we make a new exercise statistic
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        exercise_statistic = ExerciseStatistics.objects.filter(user=user.id).filter(exercise=exercise.id)
+        exercise_statistic = ExerciseStatistics.objects.filter(
+            user=user.id).filter(exercise=exercise.id)
         # Check that it only makes one exercise statistic
         self.assertEqual(len(exercise_statistic), 1)
-        
+
+
 class ExerciseRegimeDetailViewTests(APITestCase):
     def test_get_exercise_regime(self):
         exercise_regime = baker.make(ExerciseRegime)
-        url = reverse('exercise_regime_detail', kwargs={"pk": exercise_regime.id})
+        url = reverse('exercise_regime_detail', kwargs={
+                      "pk": exercise_regime.id})
         response = self.client.get(url)
         content = json.loads(response.content)
         # Content is now a dict
         self.assertEqual(content["id"], exercise_regime.id)
         self.assertEqual(content["name"], exercise_regime.name)
         self.assertEqual(content["text"], exercise_regime.text)
-        self.assertEqual(content["times_completed"], exercise_regime.times_completed)
+        self.assertEqual(content["times_completed"],
+                         exercise_regime.times_completed)
         self.assertEqual(content["poster"], exercise_regime.poster)
         self.assertEqual(content["likers"], list(exercise_regime.likers.all()))
         self.assertEqual(content["exercises"], exercise_regime.exercises)
-        
-class ExerciseRegimeDeleteViewTests(APITestCase):    
+
+
+class ExerciseRegimeDeleteViewTests(APITestCase):
     def test_delete_exercise_regime(self):
         user = baker.make('users.AppUser')
         exercise_regime = baker.make(ExerciseRegime, poster=user)
-        url = reverse('delete_exercise_regime', kwargs={"pk": exercise_regime.id})
+        url = reverse('delete_exercise_regime', kwargs={
+                      "pk": exercise_regime.id})
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         response.client.force_authenticate(user=user)
@@ -308,8 +329,9 @@ class ExerciseRegimeDeleteViewTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         with self.assertRaises(ExerciseRegime.DoesNotExist):
             ExerciseRegime.objects.get(pk=exercise_regime.id)
-            
-class ExerciseRegimeUpdateViewTests(APITestCase): 
+
+
+class ExerciseRegimeUpdateViewTests(APITestCase):
     def test_update_exercise_regime(self):
         """TODO: tags, media, and gfk"""
         url = reverse('update_exercise_regime')
@@ -335,9 +357,11 @@ class ExerciseRegimeUpdateViewTests(APITestCase):
         self.assertEqual(updated_regime.likes, updated_likes)
         self.assertEqual(updated_regime.name, updated_name)
         self.assertEqual(updated_regime.text, updated_text)
-        self.assertEqual(updated_regime.times_completed, updated_times_completed)    
-                 
-class ExerciseRegimeCreateViewTests(APITestCase):      
+        self.assertEqual(updated_regime.times_completed,
+                         updated_times_completed)
+
+
+class ExerciseRegimeCreateViewTests(APITestCase):
     def test_create_exercise_regime(self):
         self.url = reverse('create_exercise_regime')
         poster = baker.make('users.AppUser')
@@ -349,7 +373,7 @@ class ExerciseRegimeCreateViewTests(APITestCase):
             exercises.append(exercise.id)
         data = {
             "name": name,
-            "text": text, 
+            "text": text,
             "exercises": exercises
         }
         response = self.client.post(self.url, data)
@@ -357,7 +381,8 @@ class ExerciseRegimeCreateViewTests(APITestCase):
         self.client.force_authenticate(user=poster)
         response = self.client.post(self.url, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        created_regime = ExerciseRegime.objects.filter(name=name).filter(text=text)
+        created_regime = ExerciseRegime.objects.filter(
+            name=name).filter(text=text)
         self.assertTrue(created_regime.exists())
         self.assertEqual(len(created_regime), 1)
         created_regime = created_regime[0]
@@ -365,6 +390,8 @@ class ExerciseRegimeCreateViewTests(APITestCase):
         self.assertEqual(created_regime.text, text)
         self.assertEqual(created_regime.name, name)
         self.assertEqual(created_regime.exercises, exercises)
+        self.assertEqual(response.data, created_regime.id)
+
 
 class UpdateLikesViewTests(APITestCase):
     def test_update_likes(self):
@@ -382,11 +409,12 @@ class UpdateLikesViewTests(APITestCase):
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         updated_post = ExerciseRegime.objects.get()
-        self.assertEqual(updated_post.likes,likes + 1)
+        self.assertEqual(updated_post.likes, likes + 1)
         # many to many checks
         for x in updated_post.likers.all():
-            self.assertEqual(x,user)
-    
+            self.assertEqual(x, user)
+
+
 class FavoriteExerciseViewTests(APITestCase):
     def test_get_favorite_exercise(self):
         url = reverse('favorite_exercise_statistic')
@@ -394,7 +422,7 @@ class FavoriteExerciseViewTests(APITestCase):
         user = baker.make(User)
         for i in range(0, 201, 100):
             baker.make(ExerciseStatistics, total_reps=i, user=user)
-        
+
         data = {
             "user_id": user.id
         }
@@ -402,7 +430,8 @@ class FavoriteExerciseViewTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = json.loads(response.content)
         self.assertEqual(data["total_reps"], 200)
-        
+
+
 class FavoriteExerciseRegimeStatisticsViewTests(APITestCase):
     def test_get_favorite_exercise_regime_stats(self):
         url = reverse('favorite_exercise_regime_statistic')
@@ -417,7 +446,8 @@ class FavoriteExerciseRegimeStatisticsViewTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = json.loads(response.content)
         self.assertEqual(data["times_completed"], 2)
-        
+
+
 class ExerciseSessionCreateViewTests(APITestCase):
     def test_create_exercise_session(self):
         url = reverse('create_exercise_session')
@@ -442,22 +472,23 @@ class ExerciseSessionCreateViewTests(APITestCase):
         self.client.force_authenticate(user=user)
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        exercise_session = ExerciseSession.objects.filter(user=user).filter(exercise=exercise).filter(duration=duration)[0]
+        exercise_session = ExerciseSession.objects.filter(user=user).filter(
+            exercise=exercise).filter(duration=duration)[0]
         self.assertEqual(exercise_session.exercise, exercise)
         self.assertEqual(exercise_session.user, user)
         self.assertEqual(exercise_session.sets, sets)
         self.assertEqual(exercise_session.reps, reps)
         self.assertEqual(exercise_session.duration, duration)
         self.assertEqual(exercise_session.perfect_reps, perfect_reps)
-        
-      
-            
+
+
 class LatestExerciseSessionViewTests(APITestCase):
     def test_get_latest_exercise_session(self):
         url = reverse('latest_exercise_session')
         User = get_user_model()
         user = baker.make(User)
-        exercise_sessions = [baker.make(ExerciseSession, user=user) for i in range(21)]
+        exercise_sessions = [baker.make(
+            ExerciseSession, user=user) for i in range(21)]
         data = {
             "set_no": 0,
             "user_id": user.id
@@ -467,11 +498,13 @@ class LatestExerciseSessionViewTests(APITestCase):
         response_data = json.loads(response.content)
         # Checks that last 10 entries of exercise sessions we generated are indeed returned
         for i, exercise_session in enumerate(response_data):
-            self.assertEqual(exercise_sessions[-(i+1)].id, exercise_session["id"])
+            self.assertEqual(
+                exercise_sessions[-(i+1)].id, exercise_session["id"])
         data["set_no"] = 1
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = json.loads(response.content)
-        # Checks that newest set of entries (latest 10 exercise sessions) are returned 
+        # Checks that newest set of entries (latest 10 exercise sessions) are returned
         for i, exercise_session in enumerate(response_data):
-            self.assertEqual(exercise_sessions[-(i+11)].id, exercise_session["id"])
+            self.assertEqual(
+                exercise_sessions[-(i+11)].id, exercise_session["id"])
