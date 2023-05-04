@@ -7,6 +7,7 @@ from rest_framework.permissions import IsAuthenticated
 from feed.views import TagsUpdateView, TagsDeleteView, LikesUpdateView, LikesDeleteView, ShareUpdateView, ShareDeleteView, MediaUpdateView, MediaDeleteView  # type: ignore
 from datetime import datetime, timezone
 from django.middleware.csrf import get_token
+from rest_framework.parsers import FormParser, MultiPartParser
 # Create your views here.
 
 
@@ -218,6 +219,38 @@ class ExerciseRegimeCreateView(APIView):
         return Response(status=status.HTTP_201_CREATED)
 
 
+class ExerciseRegimeUpdateImageView(APIView):
+    def post(self, request, pk):
+        parser_classes = [FormParser, MultiPartParser]
+
+        if not request.user.is_authenticated:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+
+        uploaded_file_object = request.FILES.get("image", None)
+        # Check that image is indeed uploaded
+        if uploaded_file_object is None:
+            return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
+        """
+        file_name = uploaded_file_object.name
+        start = file_name.rfind('.')
+        allowed_formats = [".png", ".jpeg", ".jpg", ".webp"] 
+        if file_name[start:] not in allowed_formats:
+            return Response("File format is not allowed",status=status.HTTP_406_NOT_ACCEPTABLE)
+        """
+        # File size in Megabytes
+        file_size = uploaded_file_object.size / (1024*1024)
+        if file_size > 2:
+            return Response("File size greater than 2MB", status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            exercise_regime = ExerciseRegime.objects.get(pk=pk)
+            exercise_regime.media = uploaded_file_object
+            exercise_regime.save()
+            return Response("Success")
+        except:
+            return Response("pk does not exist", status.HTTP_400_BAD_REQUEST)
+
+
 """
 PRESET CLASSES
 """
@@ -260,6 +293,8 @@ class ExerciseShareDeleteView(ShareDeleteView):
 
 
 class ExerciseMediaUpdateView(MediaUpdateView):
+    """Rubbish view"""
+
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
         self.model = Exercise
