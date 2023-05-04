@@ -28,26 +28,15 @@ class FeedPost(Post):
     # Target Table must have a key that is a positive integer
     shared_id = models.PositiveIntegerField(blank=True, null=True, default=None)
     shared_object = GenericForeignKey('shared_type', 'shared_id')
+    privacy_level = models.SmallIntegerField(default=0)
+    community = models.ForeignKey('community.Community', on_delete=models.CASCADE, blank=True, null=True)
+    def __str__(self):
+        return f"Post by {self.poster.username} posted at {self.posted_at}"
 
     class Meta:
-        abstract = True
         indexes = [
             models.Index(fields=["shared_type", "shared_id"]),
         ]
-
-########
-# Posts        
-
-class UserPost(FeedPost):
-    privacy_level = models.SmallIntegerField(default=0)
-    def __str__(self):
-        return f"User Post by {self.poster.username} posted at {self.posted_at}"
-    
-class CommunityPost(FeedPost):
-    # If community is deleted, all posts in community are deleted
-    community = models.ForeignKey('community.Community', on_delete=models.CASCADE)
-    def __str__(self):
-        return f"Community Post by {self.poster.username} posted at {self.posted_at}"
 
 class Comment(Post):
     text = models.CharField(max_length=2000, default="")
@@ -64,7 +53,6 @@ class Comment(Post):
     def __str__(self):
         return f"Comment by {self.poster.username} at {self.parent_object}"
     
-
 class Tags(models.Model):
     tag = models.CharField(max_length=50, unique=True, primary_key=True)
     def __str__(self):

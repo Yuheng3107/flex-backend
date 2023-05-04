@@ -1,5 +1,5 @@
 from django.db import models
-from feed.models import FeedPost  # type: ignore
+from feed.models import Post  # type: ignore
 from django.contrib.auth import get_user_model
 from django.contrib.postgres.fields import ArrayField
 User = get_user_model()
@@ -7,13 +7,14 @@ User = get_user_model()
 # Create your models here.
 
 
-class Exercise(FeedPost):
-    title = None
+class Exercise(Post):
     name = models.CharField(max_length=50)
     # To gauge popularity
     perfect_reps = models.PositiveIntegerField(default=0)
     total_reps = models.PositiveIntegerField(default=0)
-
+    text = models.CharField(max_length=10000, default="")
+    media = models.FileField(blank=True, null=True)
+    tags = models.ManyToManyField('feed.Tags', blank=True)
     def __str__(self):
         return self.name
 
@@ -31,9 +32,11 @@ class ExerciseStatistics(models.Model):
         return f"{self.user} stats for {self.exercise}"
 
 
-class ExerciseRegime(FeedPost):
+class ExerciseRegime(Post):
     name = models.CharField(max_length=50)
-    title = None
+    text = models.CharField(max_length=10000, default="")
+    media = models.FileField(blank=True, null=True)
+    tags = models.ManyToManyField('feed.Tags', blank=True)
     exercises = ArrayField(models.PositiveSmallIntegerField())
     times_completed = models.PositiveIntegerField(default=0)
 

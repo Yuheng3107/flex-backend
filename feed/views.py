@@ -3,9 +3,9 @@ from rest_framework import status
 from rest_framework.parsers import FormParser, MultiPartParser
 from django.contrib.contenttypes.models import ContentType
 
-from .models import Comment, Tags, UserPost, CommunityPost
+from .models import Comment, Tags, FeedPost
 from community.models import Community  # type: ignore
-from .serializers import CommentSerializer, UserPostSerializer, CommunityPostSerializer
+from .serializers import CommentSerializer, FeedPostSerializer, FeedPostSerializer
 
 from datetime import datetime, timedelta, timezone
 import itertools as it
@@ -31,13 +31,13 @@ class UserPostCreateView(APIView):
         create_fields = ["text", "privacy_level", "title"]
         fields = {field: request.data[field]
                   for field in create_fields if field in request.data}
-        # Unpack the dictionary and pass them as keyword arguments to create in UserPost
-        UserPost.objects.create(poster=request.user, **fields)
+        # Unpack the dictionary and pass them as keyword arguments to create in FeedPost
+        FeedPost.objects.create(poster=request.user, **fields)
 
         return Response(status=status.HTTP_201_CREATED)
 
 
-class UserPostUpdateView(APIView):
+class FeedPostUpdateView(APIView):
     def put(self, request):
         """To update user post"""
         if not request.user.is_authenticated:
@@ -51,9 +51,9 @@ class UserPostUpdateView(APIView):
 
         # Check post
         try:
-            post = UserPost.objects.get(pk=request.data["id"])
-        except UserPost.DoesNotExist:
-            return Response("Please put a valid UserPost id", status=status.HTTP_404_NOT_FOUND)
+            post = FeedPost.objects.get(pk=request.data["id"])
+        except FeedPost.DoesNotExist:
+            return Response("Please put a valid FeedPost id", status=status.HTTP_404_NOT_FOUND)
         # Check User
         if request.user != post.poster:
             return Response("Editing a post you did not create", status=status.HTTP_401_UNAUTHORIZED)
@@ -62,41 +62,41 @@ class UserPostUpdateView(APIView):
         update_fields = ["text", "privacy_level", "title"]
         fields = {field: request.data[field]
                   for field in update_fields if field in request.data}
-        # Unpack the dictionary and pass them as keyword arguments to update in UserPost
-        UserPost.objects.filter(pk=request.data["id"]).update(**fields)
+        # Unpack the dictionary and pass them as keyword arguments to update in FeedPost
+        FeedPost.objects.filter(pk=request.data["id"]).update(**fields)
 
         return Response(status=status.HTTP_200_OK)
 
 
-class UserPostDetailView(APIView):
+class FeedPostDetailView(APIView):
     def get(self, request, pk):
-        """To get details of a UserPost"""
+        """To get details of a FeedPost"""
         try:
-            post = UserPost.objects.get(pk=pk)
-            serializer = UserPostSerializer(post)
+            post = FeedPost.objects.get(pk=pk)
+            serializer = FeedPostSerializer(post)
             return Response(serializer.data)
-        except UserPost.DoesNotExist:
+        except FeedPost.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
 
-class UserPostListView(APIView):
+class FeedPostListView(APIView):
     def post(self, request):
-        if "user_posts" not in request.data:
+        if "feed_posts" not in request.data:
             return Response(status=status.HTTP_400_BAD_REQUEST)
-        user_posts = UserPost.objects.filter(pk__in=request.data["user_posts"])
-        serializer = UserPostSerializer(user_posts, many=True)
+        feed_posts = FeedPost.objects.filter(pk__in=request.data["feed_posts"])
+        serializer = FeedPostSerializer(feed_posts, many=True)
         return Response(serializer.data)
 
 
-class UserPostDeleteView(APIView):
+class FeedPostDeleteView(APIView):
     def delete(self, request, pk):
         try:
-            post = UserPost.objects.get(pk=pk)
+            post = FeedPost.objects.get(pk=pk)
             if (post.poster != request.user):
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
             post.delete()
             return Response()
-        except UserPost.DoesNotExist:
+        except FeedPost.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
 
@@ -124,8 +124,8 @@ class CommentCreateView(APIView):
         except ContentType.DoesNotExist:
             return Response("Please put a valid parent_type", status=status.HTTP_400_BAD_REQUEST)
 
-        commentable_models = ['comment', 'userpost',
-                              'communitypost', 'exercise', 'exerciseregime']
+        commentable_models = ['comment', 'feedpost',
+                               'exercise', 'exerciseregime']
         if ct.model not in commentable_models:
             return Response("Parent Type not Commentable", status=status.HTTP_400_BAD_REQUEST)
 
@@ -232,75 +232,10 @@ class CommunityPostCreateView(APIView):
         fields = {field: request.data[field]
                   for field in create_fields if field in request.data}
         # Unpack the dictionary and pass them as keyword arguments to create in CommunityPost
-        post = CommunityPost.objects.create(
+        post = FeedPost.objects.create(
             community=community, poster=request.user, **fields)
 
         return Response(status=status.HTTP_201_CREATED)
-
-
-class CommunityPostUpdateView(APIView):
-    def put(self, request):
-        """To update community post"""
-        if not request.user.is_authenticated:
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
-
-        check_fields = ["id"]
-        # Check that all the required data is in the post request
-        for field in check_fields:
-            if field not in request.data or request.data[field] == "":
-                return Response(f"Please add the {field} field in your request", status=status.HTTP_400_BAD_REQUEST)
-
-        # Check post
-        try:
-            post = CommunityPost.objects.get(pk=request.data["id"])
-        except CommunityPost.DoesNotExist:
-            return Response("Please put a valid CommunityPost id", status=status.HTTP_404_NOT_FOUND)
-        # Check User
-        if request.user != post.poster:
-            return Response(f"Editing a post you did not create", status=status.HTTP_401_UNAUTHORIZED)
-
-        update_fields = ["text"]
-        fields = {field: request.data[field]
-                  for field in update_fields if field in request.data}
-        # Unpack the dictionary and pass them as keyword arguments to create in CommunityPost
-        CommunityPost.objects.filter(pk=request.data["id"]).update(**fields)
-
-        return Response(status=status.HTTP_200_OK)
-
-
-class CommunityPostDetailView(APIView):
-    def get(self, request, pk):
-        """To get details of a CommunityPost"""
-        try:
-            post = CommunityPost.objects.get(pk=pk)
-            serializer = CommunityPostSerializer(post)
-            return Response(serializer.data)
-        except CommunityPost.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-
-
-class CommunityPostListView(APIView):
-    def post(self, request):
-        """To get details of multiple CommunityPosts"""
-        if "community_posts" not in request.data:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
-        community_posts = CommunityPost.objects.filter(
-            pk__in=request.data["community_posts"])
-        serializer = CommunityPostSerializer(community_posts, many=True)
-        return Response(serializer.data)
-
-
-class CommunityPostDeleteView(APIView):
-    def delete(self, request, pk):
-        try:
-            post = CommunityPost.objects.get(pk=pk)
-            if (post.poster != request.user):
-                return Response(status=status.HTTP_401_UNAUTHORIZED)
-            post.delete()
-            return Response()
-        except CommunityPost.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-
 
 """
 PRESETS
@@ -493,8 +428,7 @@ class ShareUpdateView(APIView):
         except ContentType.DoesNotExist:
             return Response("Please put a valid shared_type", status=status.HTTP_400_BAD_REQUEST)
         # check that model is sharable
-        sharable_models = ['comment', 'userpost', 'communitypost',
-                           'exercise', 'exerciseregime', 'user', 'achievement']
+        sharable_models = ['comment', 'feedpost', 'exercise', 'exerciseregime', 'user', 'achievement']
         if ct.model not in sharable_models:
             return Response("Parent Type not sharable", status=status.HTTP_400_BAD_REQUEST)
         # check for shared id
@@ -617,101 +551,52 @@ PRESET CLASSES
 """
 
 
-class UserPostTagsUpdateView(TagsUpdateView):
+class FeedPostTagsUpdateView(TagsUpdateView):
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
-        self.model = UserPost
+        self.model = FeedPost
 
 
-class UserPostTagsDeleteView(TagsDeleteView):
+class FeedPostTagsDeleteView(TagsDeleteView):
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
-        self.model = UserPost
+        self.model = FeedPost
 
 
-class UserPostLikesUpdateView(LikesUpdateView):
+class FeedPostLikesUpdateView(LikesUpdateView):
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
-        self.model = UserPost
+        self.model = FeedPost
 
 
-class UserPostLikesDeleteView(LikesDeleteView):
+class FeedPostLikesDeleteView(LikesDeleteView):
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
-        self.model = UserPost
+        self.model = FeedPost
 
 
-class UserPostShareUpdateView(ShareUpdateView):
+class FeedPostShareUpdateView(ShareUpdateView):
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
-        self.model = UserPost
+        self.model = FeedPost
 
 
-class UserPostShareDeleteView(ShareDeleteView):
+class FeedPostShareDeleteView(ShareDeleteView):
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
-        self.model = UserPost
+        self.model = FeedPost
 
 
-class UserPostMediaUpdateView(MediaUpdateView):
+class FeedPostMediaUpdateView(MediaUpdateView):
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
-        self.model = UserPost
+        self.model = FeedPost
 
 
-class UserPostMediaDeleteView(MediaDeleteView):
+class FeedPostMediaDeleteView(MediaDeleteView):
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
-        self.model = UserPost
-
-
-class CommunityPostTagsUpdateView(TagsUpdateView):
-    def setup(self, request, *args, **kwargs):
-        super().setup(request, *args, **kwargs)
-        self.model = CommunityPost
-
-
-class CommunityPostTagsDeleteView(TagsDeleteView):
-    def setup(self, request, *args, **kwargs):
-        super().setup(request, *args, **kwargs)
-        self.model = CommunityPost
-
-
-class CommunityPostLikesUpdateView(LikesUpdateView):
-    def setup(self, request, *args, **kwargs):
-        super().setup(request, *args, **kwargs)
-        self.model = CommunityPost
-
-
-class CommunityPostLikesDeleteView(LikesDeleteView):
-    def setup(self, request, *args, **kwargs):
-        super().setup(request, *args, **kwargs)
-        self.model = CommunityPost
-
-
-class CommunityPostShareUpdateView(ShareUpdateView):
-    def setup(self, request, *args, **kwargs):
-        super().setup(request, *args, **kwargs)
-        self.model = CommunityPost
-
-
-class CommunityPostShareDeleteView(ShareDeleteView):
-    def setup(self, request, *args, **kwargs):
-        super().setup(request, *args, **kwargs)
-        self.model = CommunityPost
-
-
-class CommunityPostMediaUpdateView(MediaUpdateView):
-    def setup(self, request, *args, **kwargs):
-        super().setup(request, *args, **kwargs)
-        self.model = CommunityPost
-
-
-class CommunityPostMediaDeleteView(MediaDeleteView):
-    def setup(self, request, *args, **kwargs):
-        super().setup(request, *args, **kwargs)
-        self.model = CommunityPost
-
+        self.model = FeedPost
 
 class CommentLikesUpdateView(LikesUpdateView):
     def setup(self, request, *args, **kwargs):
@@ -725,7 +610,7 @@ class CommentLikesDeleteView(LikesDeleteView):
         self.model = Comment
 
 
-class LatestUserPostView(APIView):
+class LatestFeedPostView(APIView):
     def post(self, request):
         """Returns 10 most recent posts, taking into account posts user has already loaded"""
         if "set_no" not in request.data or "user_id" not in request.data:
@@ -734,9 +619,9 @@ class LatestUserPostView(APIView):
         set_size = 10
         start = set_no * set_size
         try:
-            latest_posts_qs = UserPost.objects.filter(
+            latest_posts_qs = FeedPost.objects.filter(
                 poster=request.data["user_id"]).order_by('-id')[start:start+set_size]
-            serializer = UserPostSerializer(latest_posts_qs, many=True)
+            serializer = FeedPostSerializer(latest_posts_qs, many=True)
             return Response(serializer.data)
         except:
             return Response("No more posts", status=status.HTTP_404_NOT_FOUND)
@@ -751,9 +636,9 @@ class LatestCommunityPostView(APIView):
         set_size = 10
         start = set_no * set_size
         try:
-            latest_posts_qs = CommunityPost.objects.filter(
+            latest_posts_qs = FeedPost.objects.filter(
                 community=request.data["community_id"]).order_by('-id')[start:start+set_size]
-            serializer = CommunityPostSerializer(latest_posts_qs, many=True)
+            serializer = FeedPostSerializer(latest_posts_qs, many=True)
             return Response(serializer.data)
         except:
             return Response("No more posts", status=status.HTTP_404_NOT_FOUND)
@@ -776,16 +661,16 @@ class UserFeedView(APIView):
         # Filter for events that occurred within the most recent day
         friends = request.user.following.values_list('id', flat=True)
         communities = request.user.communities.values_list('id', flat=True)
-        friend_posts = UserPostSerializer(UserPost.objects.filter(
-            poster__in=friends, posted_at__range=(start_time, end_time)).order_by("-id"), many=True).data
-        community_posts = CommunityPostSerializer(CommunityPost.objects.filter(
+        friend_posts = FeedPostSerializer(FeedPost.objects.filter(
+            poster__in=friends, posted_at__range=(start_time, end_time), community=None).order_by("-id"), many=True).data
+        community_posts = FeedPostSerializer(FeedPost.objects.filter(
             community__in=communities, posted_at__range=(start_time, end_time)).order_by("-likes")[0:10], many=True).data
         followed = list(it.chain(friend_posts, community_posts))
         # recommended
         recommended_no = min(math.floor(len(followed)/4),3)
-        recommended_friends = UserPostSerializer(UserPost.objects.filter(posted_at__range=(
+        recommended_friends = FeedPostSerializer(FeedPost.objects.filter(posted_at__range=(
             start_time, end_time)).exclude(poster__in=friends).order_by("-likes")[0:recommended_no], many=True).data
-        recommended_community = CommunityPostSerializer(CommunityPost.objects.filter(posted_at__range=(
+        recommended_community = FeedPostSerializer(FeedPost.objects.filter(posted_at__range=(
             start_time, end_time)).exclude(community__in=communities).order_by("-likes")[0:recommended_no], many=True).data
 
         # stitch
@@ -802,7 +687,7 @@ class CommunityPostSearchView(APIView):
                 return Response(f"Add the {field} field in POST request", status=status.HTTP_400_BAD_REQUEST)
         if request.data["content"] == "":
             return Response("Content cannot be empty", status.HTTP_400_BAD_REQUEST)
-        qs = CommunityPost.objects.filter(community=request.data["community_id"]).annotate(
+        qs = FeedPost.objects.filter(community=request.data["community_id"]).annotate(
             search=SearchVector("title", "text"),).filter(search=request.data["content"]).order_by('-likes')
         """
         # Split sentence of search into respective keywords
@@ -823,18 +708,18 @@ class CommunityPostSearchView(APIView):
             else:
                 text_query = text_query & Q(text__icontains=keyword)
         
-        qs = CommunityPost.objects.filter(community=request.data["community_id"]).filter(title_query | text_query).order_by('-likes')"""
+        qs = FeedPost.objects.filter(community=request.data["community_id"]).filter(title_query | text_query).order_by('-likes')"""
         post_no = qs.count()
         if post_no == 0:
             return Response("No posts found")
         if post_no > 10:
             # Get top 10 most liked posts if there are more than 10 posts
             qs = qs[:10]
-        serializer = CommunityPostSerializer(qs, many=True)
+        serializer = FeedPostSerializer(qs, many=True)
         return Response(serializer.data)
 
 
-class UserPostSearchView(APIView):
+class FeedPostSearchView(APIView):
     def post(self, request):
         required_fields = ["content", "user_id"]
         for field in required_fields:
@@ -842,7 +727,7 @@ class UserPostSearchView(APIView):
                 return Response(f"Add the {field} field in POST request", status=status.HTTP_400_BAD_REQUEST)
         if request.data["content"] == "":
             return Response("Content cannot be empty", status.HTTP_400_BAD_REQUEST)
-        qs = UserPost.objects.filter(user=request.data["user_id"]).annotate(search=SearchVector(
+        qs = FeedPost.objects.filter(user=request.data["user_id"]).annotate(search=SearchVector(
             "title", "text"),).filter(search=request.data["content"]).order_by('-likes')
         post_no = qs.count()
         if post_no == 0:
@@ -850,5 +735,5 @@ class UserPostSearchView(APIView):
         if post_no > 10:
             # Get top 10 most liked posts if there are more than 10 posts
             qs = qs[:10]
-        serializer = UserPostSerializer(qs, many=True)
+        serializer = FeedPostSerializer(qs, many=True)
         return Response(serializer.data)
