@@ -39,7 +39,7 @@ class ExerciseRegime(Post):
     tags = models.ManyToManyField('feed.Tags', blank=True)
     exercises = ArrayField(models.PositiveSmallIntegerField())
     times_completed = models.PositiveIntegerField(default=0)
-
+    
     def __str__(self):
         return self.name
 

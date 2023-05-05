@@ -97,6 +97,15 @@ class ExerciseStatisticsDetailView(APIView):
         serializer = ExerciseStatisticsSerializer(exercise_statistics[0])
         return Response(serializer.data)
 
+class ExerciseRegimeStatisticsDetailView(APIView):
+    def get(self, request, pk):
+        if not request.user.is_authenticated:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        exercise_regime_statistics = ExerciseRegimeStatistics.objects.filter(
+            exercise_regime=pk).filter(user=request.user.id)
+        serializer = ExerciseRegimeStatisticsSerializer(exercise_regime_statistics[0])
+        return Response(serializer.data)
+
 
 class ExerciseStatisticsUpdateView(APIView):
     def post(self, request):
@@ -397,6 +406,23 @@ class FavoriteExerciseStatisticView(APIView):
         serializer = ExerciseStatisticsSerializer(favorite_exercise_stats)
         return Response(serializer.data)
 
+class ExerciseRegimeStatisticsCreateView(APIView):
+    def post(self, request):
+        authentication_classes = [SessionAuthentication, BasicAuthentication]
+        permission_classes = [IsAuthenticated]
+
+        if not request.user.is_authenticated:
+            return Response("Please log in.", status=status.HTTP_401_UNAUTHORIZED)
+        
+        exercise_regime_id = request.data.get("exercise_regime_id", None)
+        if exercise_regime_id is None:
+            return Response("Please put an exercise_regime id", status=status.HTTP_400_BAD_REQUEST)
+        try:
+            exercise_regime = ExerciseRegime.objects.get(pk=exercise_regime_id)
+        except ExerciseRegime.DoesNotExist:
+            return Response("Please put a valid exercise_regime id", status=status.HTTP_400_BAD_REQUEST)
+        request.user.exercise_regimes.add(exercise_regime)
+        return Response()
 
 class FavoriteExerciseRegimeStatisticView(APIView):
     def post(self, request):
