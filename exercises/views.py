@@ -66,7 +66,7 @@ class ExerciseRegimeInfoUpdateView(APIView):
             if field not in request.data:
                 return Response(f"Please add the {field} field in your request", status=status.HTTP_400_BAD_REQUEST)
         if len(request.data["exercises"]) != len(request.data["rep_count"]) or len(request.data["exercises"]) != len(request.data["set_count"]):
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+            return Response("three arrays should have the same length",status=status.HTTP_400_BAD_REQUEST)
         for i, exercise in enumerate(request.data["exercises"]):
             try:
                 ExerciseRegimeInfo.objects.create(exercise=exercise, exercise_regime=regime.id, rep_count=request.data["rep_count"][i], set_count=request.data["set_count"][i], order=i+1)
