@@ -250,10 +250,9 @@ class ExerciseStatisticsUpdateViewTests(APITestCase):
         exercise = baker.make(Exercise)
         global_perfect_reps = exercise.perfect_reps
         global_total_reps = exercise.total_reps
-
         url = reverse('update_exercise_statistics')
         user = baker.make('users.AppUser')
-        # do not add exercise to user to check if auto creates for nonexistant entry
+        exercise_statistic = baker.make(ExerciseStatistics, exercise=exercise, user=user)
         perfect_reps_increase = 20
         total_reps_increase = 10
         data = {
@@ -262,11 +261,11 @@ class ExerciseStatisticsUpdateViewTests(APITestCase):
             "total_reps": total_reps_increase
         }
         # Check that data cannot be accessed if you are not logged in
-        response = self.client.post(url, data, format='json')
+        response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         self.client.force_authenticate(user=user)
         # Check that perfect reps change once user is authenticated
-        response = self.client.post(url, data, format='json')
+        response = self.client.post(url, data)
         self.assertEqual(ExerciseStatistics.objects.filter(user=user.id).filter(
             exercise=exercise.id)[0].perfect_reps, perfect_reps_increase)
         self.assertEqual(ExerciseStatistics.objects.filter(user=user.id).filter(
@@ -287,27 +286,33 @@ class ExerciseStatisticsUpdateViewTests(APITestCase):
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-
-class ExerciseStatisticsCreateViewTests(APITestCase):
-    def test_create_exercise_statistics(self):
-        """Test we can create exercise statistics"""
-        url = reverse('create_exercise_statistics')
-        exercise = baker.make(Exercise)
+class ExerciseRegimeStatisticsUpdateViewTests(APITestCase):
+    def test_update_exercise_regime_statistics(self):
+        """Test that we can update exercise regime statistics"""
+        exercise_regime = baker.make(ExerciseRegime)
+        global_times_completed = exercise_regime.times_completed
+        url = reverse('update_exercise_regime_statistics')
+        user = baker.make('users.AppUser')
+        exercise_regime_statistic = baker.make(ExerciseRegimeStatistics, exercise_regime=exercise_regime, user=user)
+        times_completed_increase = 20
         data = {
-            "exercise_id": exercise.id
+            "exercise_regime_id": exercise_regime.id,
+            "times_completed": times_completed_increase
+            
         }
-        # Test that it will deny unauthorised access (not logged in)
+        # Check that data cannot be accessed if you are not logged in
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-        user = baker.make('users.AppUser')
         self.client.force_authenticate(user=user)
-        # Check that we make a new exercise statistic
+        # Check that times completed change once user is authenticated
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        exercise_statistic = ExerciseStatistics.objects.filter(
-            user=user.id).filter(exercise=exercise.id)
-        # Check that it only makes one exercise statistic
-        self.assertEqual(len(exercise_statistic), 1)
+        self.assertEqual(ExerciseRegimeStatistics.objects.filter(user=user.id).filter(
+            exercise_regime=exercise_regime.id)[0].times_completed, times_completed_increase)
+        exercise_regime = ExerciseRegime.objects.get(pk=exercise_regime.id)
+        self.assertEqual(exercise_regime.times_completed,
+                         global_times_completed+ times_completed_increase)
+    
 
 
 class ExerciseRegimeDetailViewTests(APITestCase):
@@ -327,7 +332,6 @@ class ExerciseRegimeDetailViewTests(APITestCase):
         self.assertEqual(content["likers"], list(exercise_regime.likers.all()))
         self.assertEqual(content["exercises"], exercise_regime.exercises)
 
-
 class ExerciseRegimeDeleteViewTests(APITestCase):
     def test_delete_exercise_regime(self):
         user = baker.make('users.AppUser')
@@ -341,7 +345,6 @@ class ExerciseRegimeDeleteViewTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         with self.assertRaises(ExerciseRegime.DoesNotExist):
             ExerciseRegime.objects.get(pk=exercise_regime.id)
-
 
 class ExerciseRegimeUpdateViewTests(APITestCase):
     def test_update_exercise_regime(self):
@@ -403,8 +406,6 @@ class ExerciseRegimeCreateViewTests(APITestCase):
         self.assertEqual(created_regime.name, name)
         self.assertEqual(created_regime.exercises, exercises)
         self.assertEqual(response.data, created_regime.id)
-        
-
 
 class UpdateLikesViewTests(APITestCase):
     def test_update_likes(self):
@@ -524,23 +525,3 @@ class LatestExerciseSessionViewTests(APITestCase):
             self.assertEqual(
                 exercise_sessions[-(i+11)].id, exercise_session["id"])
 
-class ExerciseRegimeStatisticsCreateViewTests(APITestCase):
-    def test_create_exercise_regime_statistics(self):
-        """Test we can create exercise regime statistics"""
-        url = reverse('create_exercise_regime_statistics')
-        exercise_regime = baker.make(ExerciseRegime)
-        data = {
-            "exercise_regime_id": exercise_regime.id
-        }
-        # Test that it will deny unauthorised access (not logged in)
-        response = self.client.post(url, data)
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-        user = baker.make('users.AppUser')
-        self.client.force_authenticate(user=user)
-        # Check that we make a new exercise statistic
-        response = self.client.post(url, data)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        exercise_statistic = ExerciseRegimeStatistics.objects.filter(
-            user=user.id).filter(exercise_regime=exercise_regime.id)
-        # Check that it only makes one exercise statistic
-        self.assertEqual(len(exercise_statistic), 1)

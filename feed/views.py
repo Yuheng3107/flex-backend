@@ -118,16 +118,13 @@ class CommentCreateView(APIView):
                 return Response(f"Please add the {field} field in your request", status=status.HTTP_400_BAD_REQUEST)
 
         # Check for valid content type
+        if request.data["parent_type"] not in ['comment', 'feedpost','exercise', 'exerciseregime']:
+            return Response("Parent Type not Commentable", status=status.HTTP_400_BAD_REQUEST)
         ct = None
         try:
-            ct = ContentType.objects.get(pk=request.data["parent_type"])
+            ct = ContentType.objects.get(model=request.data["parent_type"])
         except ContentType.DoesNotExist:
             return Response("Please put a valid parent_type", status=status.HTTP_400_BAD_REQUEST)
-
-        commentable_models = ['comment', 'feedpost',
-                              'exercise', 'exerciseregime']
-        if ct.model not in commentable_models:
-            return Response("Parent Type not Commentable", status=status.HTTP_400_BAD_REQUEST)
 
         try:
             ct.get_object_for_this_type(pk=request.data["parent_id"])
@@ -241,7 +238,101 @@ class CommunityPostCreateView(APIView):
 """
 PRESETS
 """
+class LikesUpdateView(APIView):
+    """Base class to update likes for posts"""
+    def setup(self, request, *args, **kwargs):
+        # Model is the model of the object with m2m relationship with tags
+        self.model = None
+        # This attribute will need to be overwritten in the descendant class
+        return super().setup(self, request, *args, **kwargs)
 
+    def post(self, request):
+        """Adds new m2m relationships to user model"""
+        if not request.user.is_authenticated:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        # Checks that there is a model setup
+        if self.model is None:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        check_fields = ["id"]
+        # Check that all the required data is in the post request
+        for field in check_fields:
+            if field not in request.data:
+                return Response(f"Please add the {field} field in your request", status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            post = self.model.objects.get(pk=request.data['id'])
+        except self.model.DoesNotExist:
+            return Response("Please put a valid Post id", status=status.HTTP_404_NOT_FOUND)
+        if post.likers.filter(id=request.user.id).exists():
+            return Response("Already liked", status=status.HTTP_400_BAD_REQUEST)
+        # Adds the relations to the model
+        try:
+            post.likers.add(request.user)
+            post.likes = post.likes + 1
+            post.save()
+            return Response()
+        except:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+class LikesDeleteView(APIView):
+    """Base class to delete likes for posts"""
+
+    def setup(self, request, *args, **kwargs):
+        # Model is the model of the object with m2m relationship with tags
+        self.model = None
+        # This attribute will need to be overwritten in the descendant class
+        return super().setup(self, request, *args, **kwargs)
+
+    def delete(self, request, pk):
+        """removes m2m relationships to user model"""
+
+        if not request.user.is_authenticated:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        # Checks that there is a model setup
+        if self.model is None:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            post = self.model.objects.get(pk=pk)
+        except self.model.DoesNotExist:
+            return Response("Please put a valid Post id", status=status.HTTP_404_NOT_FOUND)
+        if not post.likers.filter(id=request.user.id).exists():
+            return Response("Already unliked", status=status.HTTP_400_BAD_REQUEST)
+        # Adds the relations to the model
+        try:
+            post.likers.remove(request.user)
+            post.likes = post.likes - 1
+            post.save()
+            return Response()
+        except:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        
+class LikesListView(APIView):
+    """Base class to update likes for posts"""
+    def setup(self, request, *args, **kwargs):
+        # Model is the model of the object with m2m relationship with tags
+        self.model = None
+        # This attribute will need to be overwritten in the descendant class
+        return super().setup(self, request, *args, **kwargs)
+
+    def post(self, request):
+        if not request.user.is_authenticated:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        # Checks that there is a model setup
+        if self.model is None:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        check_fields = ["ids"]
+        # Check that all the required data is in the post request
+        for field in check_fields:
+            if field not in request.data:
+                return Response(f"Please add the {field} field in your request", status=status.HTTP_400_BAD_REQUEST)
+
+        liked_posts = self.model.objects.filter(likers=request.user, id__in=request.data["ids"])
+        if liked_posts.exists():
+            return Response(liked_posts.values_list('id', flat=True))
+        return Response([])
 
 class TagsUpdateView(APIView):
     """Base class to update Tags for posts"""
@@ -283,47 +374,6 @@ class TagsUpdateView(APIView):
         except:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
-
-class LikesUpdateView(APIView):
-    """Base class to update likes for posts"""
-
-    def setup(self, request, *args, **kwargs):
-        # Model is the model of the object with m2m relationship with tags
-        self.model = None
-        # This attribute will need to be overwritten in the descendant class
-        return super().setup(self, request, *args, **kwargs)
-
-    def post(self, request):
-        """Adds new m2m relationships to user model"""
-
-        if not request.user.is_authenticated:
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
-        # Checks that there is a model setup
-        if self.model is None:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
-
-        check_fields = ["id"]
-        # Check that all the required data is in the post request
-        for field in check_fields:
-            if field not in request.data:
-                return Response(f"Please add the {field} field in your request", status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            post = self.model.objects.get(pk=request.data['id'])
-        except self.model.DoesNotExist:
-            return Response("Please put a valid Post id", status=status.HTTP_404_NOT_FOUND)
-        if post.likers.filter(id=request.user.id).exists():
-            return Response("Already liked", status=status.HTTP_400_BAD_REQUEST)
-        # Adds the relations to the model
-        try:
-            post.likers.add(request.user)
-            post.likes = post.likes + 1
-            post.save()
-            return Response()
-        except:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
-
-
 class TagsDeleteView(APIView):
     """Base class to delete Tags for posts"""
 
@@ -352,40 +402,6 @@ class TagsDeleteView(APIView):
         try:
             # Unpacks foreign keys in fk_list
             post.tags.remove(tag_name)
-            return Response()
-        except:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
-
-
-class LikesDeleteView(APIView):
-    """Base class to delete likes for posts"""
-
-    def setup(self, request, *args, **kwargs):
-        # Model is the model of the object with m2m relationship with tags
-        self.model = None
-        # This attribute will need to be overwritten in the descendant class
-        return super().setup(self, request, *args, **kwargs)
-
-    def delete(self, request, pk):
-        """removes m2m relationships to user model"""
-
-        if not request.user.is_authenticated:
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
-        # Checks that there is a model setup
-        if self.model is None:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            post = self.model.objects.get(pk=pk)
-        except self.model.DoesNotExist:
-            return Response("Please put a valid Post id", status=status.HTTP_404_NOT_FOUND)
-        if not post.likers.filter(id=request.user.id).exists():
-            return Response("Already unliked", status=status.HTTP_400_BAD_REQUEST)
-        # Adds the relations to the model
-        try:
-            post.likers.remove(request.user)
-            post.likes = post.likes - 1
-            post.save()
             return Response()
         except:
             return Response(status=status.HTTP_400_BAD_REQUEST)
@@ -424,16 +440,13 @@ class ShareUpdateView(APIView):
             return Response("Editing a post you did not create", status=status.HTTP_401_UNAUTHORIZED)
 
         # check for shared type
+        if request.data["shared_type"] not in ['comment', 'feedpost', 'exercise','exerciseregime', 'user', 'achievement']:
+            return Response("Parent Type not sharable", status=status.HTTP_400_BAD_REQUEST)
         try:
-            ct = ContentType.objects.get(pk=request.data["shared_type"])
+            ct = ContentType.objects.get(model=request.data["shared_type"])
         except ContentType.DoesNotExist:
             return Response("Please put a valid shared_type", status=status.HTTP_400_BAD_REQUEST)
-        # check that model is sharable
-        sharable_models = ['comment', 'feedpost', 'exercise',
-                           'exerciseregime', 'user', 'achievement']
-        if ct.model not in sharable_models:
-            return Response("Parent Type not sharable", status=status.HTTP_400_BAD_REQUEST)
-        # check for shared id
+        
         try:
             ct.get_object_for_this_type(pk=request.data["shared_id"])
         except:
@@ -443,7 +456,6 @@ class ShareUpdateView(APIView):
             shared_type=ct, shared_id=request.data["shared_id"])
 
         return Response()
-
 
 class ShareDeleteView(APIView):
     def setup(self, request, *args, **kwargs):
@@ -557,57 +569,48 @@ class FeedPostTagsUpdateView(TagsUpdateView):
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
         self.model = FeedPost
-
-
 class FeedPostTagsDeleteView(TagsDeleteView):
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
         self.model = FeedPost
-
-
 class FeedPostLikesUpdateView(LikesUpdateView):
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
         self.model = FeedPost
-
-
 class FeedPostLikesDeleteView(LikesDeleteView):
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
         self.model = FeedPost
-
-
+class FeedPostLikesListView(LikesListView):
+    def setup(self, request, *args, **kwargs):
+        super().setup(request, *args, **kwargs)
+        self.model = FeedPost
 class FeedPostShareUpdateView(ShareUpdateView):
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
         self.model = FeedPost
-
-
 class FeedPostShareDeleteView(ShareDeleteView):
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
         self.model = FeedPost
-
-
 class FeedPostMediaUpdateView(MediaUpdateView):
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
         self.model = FeedPost
-
-
 class FeedPostMediaDeleteView(MediaDeleteView):
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
         self.model = FeedPost
 
-
 class CommentLikesUpdateView(LikesUpdateView):
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
         self.model = Comment
-
-
 class CommentLikesDeleteView(LikesDeleteView):
+    def setup(self, request, *args, **kwargs):
+        super().setup(request, *args, **kwargs)
+        self.model = Comment
+class CommentLikesListView(LikesListView):
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
         self.model = Comment
@@ -664,22 +667,16 @@ class UserFeedView(APIView):
         # Filter for events that occurred within the most recent day
         friends = request.user.following.values_list('id', flat=True)
         communities = request.user.communities.values_list('id', flat=True)
-        friend_posts = FeedPostSerializer(FeedPost.objects.filter(
-            poster__in=friends, posted_at__range=(start_time, end_time), community=None).order_by("-id"), many=True).data
-        community_posts = FeedPostSerializer(FeedPost.objects.filter(
-            community__in=communities, posted_at__range=(start_time, end_time)).order_by("-likes")[0:10], many=True).data
-        followed = list(it.chain(friend_posts, community_posts))
-        # recommended
-        recommended_no = min(math.floor(len(followed)/4), 3)
-        recommended_friends = FeedPostSerializer(FeedPost.objects.filter(posted_at__range=(
-            start_time, end_time)).exclude(poster__in=friends).order_by("-likes")[0:recommended_no], many=True).data
-        recommended_community = FeedPostSerializer(FeedPost.objects.filter(posted_at__range=(
-            start_time, end_time)).exclude(community__in=communities).order_by("-likes")[0:recommended_no], many=True).data
+        friend_posts = FeedPost.objects.filter(
+            poster__in=friends, posted_at__range=(start_time, end_time), community=None).order_by("-id")
+        community_posts = FeedPost.objects.filter(
+            community__in=communities, posted_at__range=(start_time, end_time)).order_by("-likes")[0:10]
+        recommended_no = 5
+        recommended = FeedPost.objects.filter(posted_at__range=(start_time, end_time)).exclude(poster__in=friends, community__in=communities).order_by("-likes")[0:recommended_no]
 
         # stitch
-        data = list(
-            it.chain(followed, recommended_friends, recommended_community))
-        return Response(data)
+        results = FeedPostSerializer( friend_posts.union(community_posts, recommended ), many=True)
+        return Response(results.data)
 
 
 class CommunityPostSearchView(APIView):
@@ -720,7 +717,6 @@ class CommunityPostSearchView(APIView):
             qs = qs[:10]
         serializer = FeedPostSerializer(qs, many=True)
         return Response(serializer.data)
-
 
 class FeedPostSearchView(APIView):
     def post(self, request):

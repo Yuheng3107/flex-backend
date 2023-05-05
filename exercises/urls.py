@@ -16,7 +16,7 @@ urlpatterns = [
     path('exercise/delete/media/<int:pk>', ExerciseMediaDeleteView.as_view(), name='delete_exercise_media'),
     # Exercise Statistics
     path('exercise_statistics/update', ExerciseStatisticsUpdateView.as_view(), name='update_exercise_statistics'),
-    path('exercise_statistics/create', ExerciseStatisticsCreateView.as_view(), name='create_exercise_statistics'),
+    # Create is done in user m2m
     path('exercise_statistics/<int:pk>', ExerciseStatisticsDetailView.as_view(), name='exercise_statistics_detail'),
     # Exercise Regimes
     path('exercise_regime/favorite', FavoriteExerciseRegimeStatisticView.as_view(), name='favorite_exercise_regime_statistic'),
@@ -33,8 +33,9 @@ urlpatterns = [
     path('exercise_regime/update/media/<int:pk>', ExerciseRegimeMediaUpdateView.as_view(), name='update_exercise_regime_media'),
     path('exercise_regime/delete/media/<int:pk>', ExerciseRegimeMediaDeleteView.as_view(), name='delete_exercise_regime_media'),
     # Exercise Regime Statistics
-    path('exercise_regime_statistics/create', ExerciseRegimeStatisticsCreateView.as_view(), name='create_exercise_regime_statistics'),
+    # Creation is done in user
     path('exericse_regime_statistics/<int:pk>', ExerciseRegimeStatisticsDetailView.as_view(), name="exercise_regime_statistics_detail"),
+    path('exercise_regime_statistics/update', ExerciseRegimeStatisticsUpdateView.as_view(), name='update_exercise_regime_statistics'),
     # Exercise Regime Info
     path('exercise_regime_info/<int:pk>', ExerciseRegimeInfoDetailView.as_view(), name='exercise_regime_info'),
     path('exercise_regime_info/update', ExerciseRegimeInfoUpdateView.as_view(), name='update_exercise_regime_info'),

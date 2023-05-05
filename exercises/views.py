@@ -43,8 +43,8 @@ class ExerciseRegimeInfoDetailView(APIView):
     def get(self, request, pk):
         """To get data for an Exercise instance"""
         try:
-            exerciseRegimeInfo = ExerciseRegimeInfo.objects.filter(exercise_regime=pk)
-            serializer = ExerciseRegimeInfoSerializer(exerciseRegimeInfo, many=True)
+            exercise_regime_info = ExerciseRegimeInfo.objects.filter(exercise_regime_id=pk)
+            serializer = ExerciseRegimeInfoSerializer(exercise_regime_info, many=True)
             return Response(serializer.data)
         except ExerciseRegimeInfo.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
@@ -61,6 +61,8 @@ class ExerciseRegimeInfoUpdateView(APIView):
             regime = ExerciseRegime.objects.get(pk=request.data["id"])
         except:
             return Response(status=status.HTTP_404_NOT_FOUND)
+        if regime.poster != request.user:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
         fields = ["exercises", "rep_count"]
         for field in fields:
             if field not in request.data:
@@ -68,12 +70,13 @@ class ExerciseRegimeInfoUpdateView(APIView):
                 
         if len(request.data["exercises"]) != len(request.data["rep_count"]):
             return Response("two arrays should have the same length",status=status.HTTP_400_BAD_REQUEST)
-        for i, exercise in enumerate(request.data["exercises"]):
-            try:
-                ExerciseRegimeInfo.objects.create(exercise_id=exercise, exercise_regime=regime, rep_count=request.data["rep_count"][i], order=i+1)
-            except:
-                print("Something got fucked")
-                return Response(status=status.HTTP_400_BAD_REQUEST)
+        try:
+            # delete old data
+            ExerciseRegimeInfo.objects.filter(exercise_regime=regime).delete()
+            for i, exercise in enumerate(request.data["exercises"]):
+                ExerciseRegimeInfo.objects.create(exercise_id=exercise, exercise_regime=regime, rep_count=request.data["rep_count"][i], order = i+1)
+        except:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
         return Response()
     
 class ExerciseListView(APIView):
@@ -103,16 +106,20 @@ class ExerciseRegimeStatisticsDetailView(APIView):
     def get(self, request, pk):
         if not request.user.is_authenticated:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
-        exercise_regime_statistics = ExerciseRegimeStatistics.objects.filter(
+        try:
+            exercise_regime_statistics = ExerciseRegimeStatistics.objects.filter(
             exercise_regime=pk).filter(user=request.user.id)
-        serializer = ExerciseRegimeStatisticsSerializer(exercise_regime_statistics[0])
-        return Response(serializer.data)
-
-
-class ExerciseStatisticsUpdateView(APIView):
+            serializer = ExerciseRegimeStatisticsSerializer(exercise_regime_statistics[0])
+            return Response(serializer.data)
+        except:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        
+        
+    
+class ExerciseRegimeStatisticsUpdateView(APIView):
     def post(self, request):
-        """ To update (increment) exercise statistics
-            Post request must contain both user and exercise foreign key
+        """ To update (increment) exercise regime statistics
+            Post request must contain exercise regime foreign key
            It is a post request, not put because it is not idempotent
         """
         authentication_classes = [SessionAuthentication, BasicAuthentication]
@@ -120,27 +127,55 @@ class ExerciseStatisticsUpdateView(APIView):
         if not request.user.is_authenticated:
             return Response("Please log in", status=status.HTTP_401_UNAUTHORIZED)
         data = request.data
-        user_id = request.user.id
+        exercise_regime_id = data.get("exercise_regime_id", None)
+        if exercise_regime_id is None:
+            return Response("Please put exercise_regime_id", status=status.HTTP_400_BAD_REQUEST)
+        times_completed = data.get("times_completed", None)
+        if times_completed is None:
+            return Response("Please put times_completed in the request", status.HTTP_400_BAD_REQUEST)
+        try:
+            exercise_regime = ExerciseRegime.objects.get(pk=exercise_regime_id)
+        except ExerciseRegime.DoesNotExist:
+            return Response("Please put a valid exercise_regime id", status=status.HTTP_400_BAD_REQUEST)
+        try:
+            exercise_regime_statistics = ExerciseRegimeStatistics.objects.get(
+                user=request.user, exercise_regime=exercise_regime_id)
+        except:
+            return Response("Exercise Regime statistics do not exist", status.HTTP_404_NOT_FOUND)
+        
+        exercise_regime_statistics.times_completed += times_completed
+        exercise_regime.times_completed += times_completed
+        exercise_regime_statistics.save()
+        exercise_regime.save()
+        return Response("Successfully Updated")
+
+class ExerciseStatisticsUpdateView(APIView):
+    def post(self, request):
+        """ To update (increment) exercise statistics
+            Post request must contain exercise foreign key
+           It is a post request, not put because it is not idempotent
+        """
+        authentication_classes = [SessionAuthentication, BasicAuthentication]
+        permission_classes = [IsAuthenticated]
+        if not request.user.is_authenticated:
+            return Response("Please log in", status=status.HTTP_401_UNAUTHORIZED)
+        data = request.data
         exercise_id = data.get("exercise_id", None)
-        if user_id is None or exercise_id is None:
-            return Response("Please put user_id and exercise_id", status=status.HTTP_400_BAD_REQUEST)
+        if exercise_id is None:
+            return Response("Please put exercise_id", status=status.HTTP_400_BAD_REQUEST)
         perfect_reps = data.get("perfect_reps", None)
         total_reps = data.get("total_reps", None)
-        if perfect_reps is None and total_reps is None:
-            return Response("Please put number of perfect reps done", status=status.HTTP_400_BAD_REQUEST)
-
+        if perfect_reps is None or total_reps is None:
+            return Response("Please put number of perfect reps and total reps done", status=status.HTTP_400_BAD_REQUEST)
         try:
             exercise = Exercise.objects.get(pk=exercise_id)
         except Exercise.DoesNotExist:
             return Response("Please put a valid exercise id", status=status.HTTP_400_BAD_REQUEST)
         try:
             exercise_statistics = ExerciseStatistics.objects.get(
-                user=user_id, exercise=exercise_id)
+                user=request.user.id, exercise=exercise_id)
         except:
-            # create a new exercise if doesn't exist
-            request.user.exercises.add(exercise)
-            exercise_statistics = ExerciseStatistics.objects.get(
-                user=user_id, exercise=exercise_id)
+            return Response("Exercise statistics do not exist", status.HTTP_404_NOT_FOUND)
 
         if perfect_reps is not None:
             exercise_statistics.perfect_reps += perfect_reps
@@ -153,27 +188,11 @@ class ExerciseStatisticsUpdateView(APIView):
         return Response()
 
 
-class ExerciseStatisticsCreateView(APIView):
-    def post(self, request):
-        """View for users to send request to create a new exercise statistic, is idempotent
-        as .add does not create duplicate entries in through table"""
-        authentication_classes = [SessionAuthentication, BasicAuthentication]
-        permission_classes = [IsAuthenticated]
 
-        if not request.user.is_authenticated:
-            return Response("Please log in.", status=status.HTTP_401_UNAUTHORIZED)
-        data = request.data
-        exercise_id = data.get("exercise_id", None)
-        if exercise_id is None:
-            return Response("Please put an exercise id", status=status.HTTP_400_BAD_REQUEST)
-        try:
-            exercise = Exercise.objects.get(pk=exercise_id)
-        except Exercise.DoesNotExist:
-            return Response("Please put a valid exercise id", status=status.HTTP_400_BAD_REQUEST)
-        request.user.exercises.add(exercise)
-        return Response()
-
-
+class ExerciseRegimeStatisticsDeleteView(APIView):
+    def delete(self, request, pk):
+        """To remove m2m """
+        
 class ExerciseRegimeDetailView(APIView):
     def get(self, request, pk):
         """To get details of an exercise regime"""
@@ -195,7 +214,6 @@ class ExerciseRegimeDeleteView(APIView):
             return Response()
         except ExerciseRegime.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
-
 
 class ExerciseRegimeUpdateView(APIView):
     def post(self, request):
@@ -275,13 +293,6 @@ class ExerciseRegimeUpdateImageView(APIView):
         # Check that image is indeed uploaded
         if uploaded_file_object is None:
             return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
-        """
-        file_name = uploaded_file_object.name
-        start = file_name.rfind('.')
-        allowed_formats = [".png", ".jpeg", ".jpg", ".webp"] 
-        if file_name[start:] not in allowed_formats:
-            return Response("File format is not allowed",status=status.HTTP_406_NOT_ACCEPTABLE)
-        """
         # File size in Megabytes
         file_size = uploaded_file_object.size / (1024*1024)
         if file_size > 2:
@@ -408,23 +419,7 @@ class FavoriteExerciseStatisticView(APIView):
         serializer = ExerciseStatisticsSerializer(favorite_exercise_stats)
         return Response(serializer.data)
 
-class ExerciseRegimeStatisticsCreateView(APIView):
-    def post(self, request):
-        authentication_classes = [SessionAuthentication, BasicAuthentication]
-        permission_classes = [IsAuthenticated]
 
-        if not request.user.is_authenticated:
-            return Response("Please log in.", status=status.HTTP_401_UNAUTHORIZED)
-        
-        exercise_regime_id = request.data.get("exercise_regime_id", None)
-        if exercise_regime_id is None:
-            return Response("Please put an exercise_regime id", status=status.HTTP_400_BAD_REQUEST)
-        try:
-            exercise_regime = ExerciseRegime.objects.get(pk=exercise_regime_id)
-        except ExerciseRegime.DoesNotExist:
-            return Response("Please put a valid exercise_regime id", status=status.HTTP_400_BAD_REQUEST)
-        request.user.exercise_regimes.add(exercise_regime)
-        return Response()
 
 class FavoriteExerciseRegimeStatisticView(APIView):
     def post(self, request):
