@@ -179,8 +179,9 @@ CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_ALL_ORIGINS = True
 CSRF_TRUSTED_ORIGINS = ['http://fitai.click',
                         'http://localhost', 'http://175.41.169.18/', 'http://localhost:3000', 'https://localhost:3000', 'https://flex.fitai.click', 'https://fitai.click']
+if USE_S3:
+    CSRF_COOKIE_DOMAIN = '.fitai.click'
 
-CSRF_COOKIE_DOMAIN = '.fitai.click'
 # Custom User Model
 AUTH_USER_MODEL = 'users.AppUser'
 if USE_S3:
