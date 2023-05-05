@@ -64,19 +64,16 @@ class ExerciseRegimeInfoUpdateView(APIView):
         fields = ["exercises", "rep_count"]
         for field in fields:
             if field not in request.data:
-                print("missing field")
                 return Response(f"Please add the {field} field in your request", status=status.HTTP_400_BAD_REQUEST)
                 
         if len(request.data["exercises"]) != len(request.data["rep_count"]):
-            print("arrays not of equal length")
             return Response("two arrays should have the same length",status=status.HTTP_400_BAD_REQUEST)
         for i, exercise in enumerate(request.data["exercises"]):
-            # try:
-                print("trying to add into db")
+            try:
                 ExerciseRegimeInfo.objects.create(exercise_id=exercise, exercise_regime=regime, rep_count=request.data["rep_count"][i], order=i+1)
-            # except:
-            #     print("Something got fucked")
-            #     return Response(status=status.HTTP_400_BAD_REQUEST)
+            except:
+                print("Something got fucked")
+                return Response(status=status.HTTP_400_BAD_REQUEST)
         return Response()
     
 class ExerciseListView(APIView):
