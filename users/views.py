@@ -129,7 +129,7 @@ class UserUpdateProfilePhotoView(APIView):
         # File size in Megabytes
         file_size = uploaded_file_object.size / (1024*1024)
         if file_size > 10:
-            return Response("File size greater than 2MB", status=status.HTTP_400_BAD_REQUEST)
+            return Response("File size greater than 2MB", status=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE)
         user = request.user
         user.profile_photo = uploaded_file_object
         user.save()
