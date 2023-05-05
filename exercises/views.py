@@ -107,7 +107,37 @@ class ExerciseRegimeStatisticsDetailView(APIView):
         return Response(serializer.data)
     
 class ExerciseRegimeStatisticsUpdateView(APIView):
-    pass
+    def post(self, request):
+        """ To update (increment) exercise regime statistics
+            Post request must contain exercise regime foreign key
+           It is a post request, not put because it is not idempotent
+        """
+        authentication_classes = [SessionAuthentication, BasicAuthentication]
+        permission_classes = [IsAuthenticated]
+        if not request.user.is_authenticated:
+            return Response("Please log in", status=status.HTTP_401_UNAUTHORIZED)
+        data = request.data
+        exercise_regime_id = data.get("exercise_regime_id", None)
+        if exercise_regime_id is None:
+            return Response("Please put exercise_regime_id", status=status.HTTP_400_BAD_REQUEST)
+        times_completed = data.get("times_completed", None)
+        if times_completed is None:
+            return Response("Please put times_completed in the request", status.HTTP_400_BAD_REQUEST)
+        try:
+            exercise_regime = ExerciseRegime.objects.get(pk=exercise_regime_id)
+        except ExerciseRegime.DoesNotExist:
+            return Response("Please put a valid exercise_regime id", status=status.HTTP_400_BAD_REQUEST)
+        try:
+            exercise_regime_statistics = ExerciseRegimeStatistics.objects.get(
+                user=request.user, exercise_regime=exercise_regime_id)
+        except:
+            return Response("Exercise Regime statistics do not exist", status.HTTP_404_NOT_FOUND)
+        
+        exercise_regime_statistics.times_completed += times_completed
+        exercise_regime.times_completed += times_completed
+        exercise_regime_statistics.save()
+        exercise_regime.save()
+        return Response("Successfully Updated")
 
 class ExerciseStatisticsUpdateView(APIView):
     def post(self, request):

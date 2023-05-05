@@ -253,7 +253,6 @@ class ExerciseStatisticsUpdateViewTests(APITestCase):
         url = reverse('update_exercise_statistics')
         user = baker.make('users.AppUser')
         exercise_statistic = baker.make(ExerciseStatistics, exercise=exercise, user=user)
-        # do not add exercise to user to check if auto creates for nonexistant entry
         perfect_reps_increase = 20
         total_reps_increase = 10
         data = {
@@ -287,7 +286,33 @@ class ExerciseStatisticsUpdateViewTests(APITestCase):
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-
+class ExerciseRegimeStatisticsUpdateViewTests(APITestCase):
+    def test_update_exercise_regime_statistics(self):
+        """Test that we can update exercise regime statistics"""
+        exercise_regime = baker.make(ExerciseRegime)
+        global_times_completed = exercise_regime.times_completed
+        url = reverse('update_exercise_regime_statistics')
+        user = baker.make('users.AppUser')
+        exercise_regime_statistic = baker.make(ExerciseRegimeStatistics, exercise_regime=exercise_regime, user=user)
+        times_completed_increase = 20
+        data = {
+            "exercise_regime_id": exercise_regime.id,
+            "times_completed": times_completed_increase
+            
+        }
+        # Check that data cannot be accessed if you are not logged in
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.client.force_authenticate(user=user)
+        # Check that times completed change once user is authenticated
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(ExerciseRegimeStatistics.objects.filter(user=user.id).filter(
+            exercise_regime=exercise_regime.id)[0].times_completed, times_completed_increase)
+        exercise_regime = ExerciseRegime.objects.get(pk=exercise_regime.id)
+        self.assertEqual(exercise_regime.times_completed,
+                         global_times_completed+ times_completed_increase)
+    
 class ExerciseStatisticsCreateViewTests(APITestCase):
     def test_create_exercise_statistics(self):
         """Test we can create exercise statistics"""

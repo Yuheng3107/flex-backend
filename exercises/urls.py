@@ -35,6 +35,7 @@ urlpatterns = [
     # Exercise Regime Statistics
     path('exercise_regime_statistics/create', ExerciseRegimeStatisticsCreateView.as_view(), name='create_exercise_regime_statistics'),
     path('exericse_regime_statistics/<int:pk>', ExerciseRegimeStatisticsDetailView.as_view(), name="exercise_regime_statistics_detail"),
+    path('exercise_regime_statistics/update', ExerciseRegimeStatisticsUpdateView.as_view(), name='update_exercise_regime_statistics'),
     # Exercise Regime Info
     path('exercise_regime_info/<int:pk>', ExerciseRegimeInfoDetailView.as_view(), name='exercise_regime_info'),
     path('exercise_regime_info/update', ExerciseRegimeInfoUpdateView.as_view(), name='update_exercise_regime_info'),
