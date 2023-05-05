@@ -144,8 +144,6 @@ class UserCreateViewTests(APITestCase):
         self.assertEqual(User.objects.count(), 1)
         self.assertEqual(User.objects.get(
             first_name="User").email, data["email"])
-        print(User.objects.get(
-            first_name="User"))
 
 
 class UserDetailViewTests(APITestCase):
@@ -172,6 +170,8 @@ class UserDetailViewTests(APITestCase):
         self.assertEqual(response.data.get("email", None), email)
         self.assertEqual(len(exercise_regimes), len(
             response.data.get("exercise_regimes")))
+        self.assertEqual([regime.id for regime in list(exercise_regimes)],
+                         response.data.get("exercise_regimes"))
 
 
 class UserOtherDetailViewTests(APITestCase):
