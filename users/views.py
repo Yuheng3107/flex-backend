@@ -1,6 +1,6 @@
 from rest_framework import status
 from rest_framework.views import APIView, Response
-from django.contrib.auth import get_user_model, login
+from django.contrib.auth import get_user_model, login, logout
 from django.http import HttpResponse
 from django.middleware.csrf import get_token
 from .serializer import UserSerializer, OtherUserSerializer
@@ -442,3 +442,12 @@ def update_community_member_count(num: int, pk: int):
     community = Community.objects.get(pk=pk)
     community.member_count += num
     community.save()
+
+
+class LogoutView(APIView):
+    def get(self, request):
+        if request.user.is_authenticated:
+            logout(request)
+            return Response("Successfully logged out")
+        else:
+            return Response(status=status.HTTP_403_FORBIDDEN)

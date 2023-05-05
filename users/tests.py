@@ -548,3 +548,16 @@ class UserCommunityDeleteViewTests(APITestCase):
         # Get the most updated instance of community
         community = Community.objects.get(pk=community.id)
         self.assertEqual(community.member_count, 69)
+
+
+class LogoutViewTests(APITestCase):
+    def test_logout(self):
+        url = reverse('logout')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        User = get_user_model()
+        user = baker.make(User)
+        self.client.force_authenticate(user=user)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, "Successfully logged out")
