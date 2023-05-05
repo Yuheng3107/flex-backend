@@ -54,7 +54,6 @@ class ExerciseRegimeInfo(models.Model):
     # Order gives index of the exercise array we are at
     order = models.PositiveSmallIntegerField(default=0)
     rep_count = models.PositiveSmallIntegerField(default=10)
-    set_count = models.PositiveSmallIntegerField(default=3)
 
 
 class ExerciseRegimeStatistics(models.Model):
