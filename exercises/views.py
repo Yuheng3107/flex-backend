@@ -44,7 +44,7 @@ class ExerciseRegimeInfoDetailView(APIView):
         """To get data for an Exercise instance"""
         try:
             exercise_regime_info = ExerciseRegimeInfo.objects.filter(exercise_regime_id=pk)
-            serializer = ExerciseRegimeInfoSerializer(exercise_regime_info)
+            serializer = ExerciseRegimeInfoSerializer(exercise_regime_info, many=True)
             return Response(serializer.data)
         except ExerciseRegimeInfo.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
