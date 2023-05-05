@@ -43,8 +43,8 @@ class ExerciseRegimeInfoDetailView(APIView):
     def get(self, request, pk):
         """To get data for an Exercise instance"""
         try:
-            exerciseRegimeInfo = ExerciseRegimeInfo.objects.filter(exercise_regime=pk)
-            serializer = ExerciseRegimeInfoSerializer(exerciseRegimeInfo)
+            exerciseRegimeInfo = ExerciseRegimeInfo.objects.filter(exercise_regime_id=pk)
+            serializer = ExerciseRegimeInfoSerializer(exerciseRegimeInfo, many=True)
             return Response(serializer.data)
         except ExerciseRegimeInfo.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
@@ -61,16 +61,18 @@ class ExerciseRegimeInfoUpdateView(APIView):
             regime = ExerciseRegime.objects.get(pk=request.data["id"])
         except:
             return Response(status=status.HTTP_404_NOT_FOUND)
-        fields = ["exercises", "rep_count", "set_count"]
+        fields = ["exercises", "rep_count"]
         for field in fields:
             if field not in request.data:
                 return Response(f"Please add the {field} field in your request", status=status.HTTP_400_BAD_REQUEST)
-        if len(request.data["exercises"]) != len(request.data["rep_count"]) or len(request.data["exercises"]) != len(request.data["set_count"]):
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+                
+        if len(request.data["exercises"]) != len(request.data["rep_count"]):
+            return Response("two arrays should have the same length",status=status.HTTP_400_BAD_REQUEST)
         for i, exercise in enumerate(request.data["exercises"]):
             try:
-                ExerciseRegimeInfo.objects.create(exercise=exercise, exercise_regime=regime.id, rep_count=request.data["rep_count"][i], set_count=request.data["set_count"][i], order=i+1)
+                ExerciseRegimeInfo.objects.create(exercise_id=exercise, exercise_regime=regime, rep_count=request.data["rep_count"][i], order=i+1)
             except:
+                print("Something got fucked")
                 return Response(status=status.HTTP_400_BAD_REQUEST)
         return Response()
     
