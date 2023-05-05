@@ -39,7 +39,7 @@ class ExerciseDetailView(APIView):
             return Response(status=status.HTTP_404_NOT_FOUND)
         
 class ExerciseRegimeInfoDetailView(APIView):
-    """Creation and deletion of an exercise is done in admin console"""
+    # Get the details of an exercise regime (put pk in queryparam in URL)
     def get(self, request, pk):
         """To get data for an Exercise instance"""
         try:
@@ -50,6 +50,8 @@ class ExerciseRegimeInfoDetailView(APIView):
             return Response(status=status.HTTP_404_NOT_FOUND)
 
 class ExerciseRegimeInfoUpdateView(APIView):
+    # Update an exerciseRegime's exercises and reps
+    # Takes a PK and three arrays in the body: exercises, set_count, rep_count
     def post(self,request):
         if not request.user.is_authenticated:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
