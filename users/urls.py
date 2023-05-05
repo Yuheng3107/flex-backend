@@ -4,8 +4,8 @@ urlpatterns = [
     # Logout
     path('user/logout', LogoutView.as_view(), name='logout'),
     # Login stuff
-    path('user/create', UserCreateView.as_view(), name='create_user'),
     path('user', UserDetailView.as_view(), name='user_detail'),
+    path('user/create', UserCreateView.as_view(), name='create_user'),
     path('user/<int:pk>', UserOthersDetailView.as_view(), name='other_user_detail'),
     path('user/list', UserOthersListView.as_view(), name="other_user_list"),
     path('user/allowed', UserAllowedView.as_view(), name='user_allowed'),
