@@ -61,6 +61,8 @@ class ExerciseRegimeInfoUpdateView(APIView):
             regime = ExerciseRegime.objects.get(pk=request.data["id"])
         except:
             return Response(status=status.HTTP_404_NOT_FOUND)
+        if regime.poster != request.user:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
         fields = ["exercises", "rep_count"]
         for field in fields:
             if field not in request.data:
@@ -68,12 +70,13 @@ class ExerciseRegimeInfoUpdateView(APIView):
                 
         if len(request.data["exercises"]) != len(request.data["rep_count"]):
             return Response("two arrays should have the same length",status=status.HTTP_400_BAD_REQUEST)
-        for i, exercise in enumerate(request.data["exercises"]):
-            try:
-                ExerciseRegimeInfo.objects.create(exercise_id=exercise, exercise_regime=regime, rep_count=request.data["rep_count"][i], order=i+1)
-            except:
-                print("Something got fucked")
-                return Response(status=status.HTTP_400_BAD_REQUEST)
+        try:
+            # delete old data
+            ExerciseRegimeInfo.objects.filter(exercise_regime=regime).delete()
+            for i, exercise in enumerate(request.data["exercises"]):
+                ExerciseRegimeInfo.objects.create(exercise_id=exercise, exercise_regime=regime, rep_count=request.data["rep_count"][i], order = i+1)
+        except:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
         return Response()
     
 class ExerciseListView(APIView):
@@ -212,7 +215,6 @@ class ExerciseRegimeDeleteView(APIView):
         except ExerciseRegime.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-
 class ExerciseRegimeUpdateView(APIView):
     def post(self, request):
         """To update exercise regime"""
@@ -291,13 +293,6 @@ class ExerciseRegimeUpdateImageView(APIView):
         # Check that image is indeed uploaded
         if uploaded_file_object is None:
             return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
-        """
-        file_name = uploaded_file_object.name
-        start = file_name.rfind('.')
-        allowed_formats = [".png", ".jpeg", ".jpg", ".webp"] 
-        if file_name[start:] not in allowed_formats:
-            return Response("File format is not allowed",status=status.HTTP_406_NOT_ACCEPTABLE)
-        """
         # File size in Megabytes
         file_size = uploaded_file_object.size / (1024*1024)
         if file_size > 2:
