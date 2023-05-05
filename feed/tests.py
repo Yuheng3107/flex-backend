@@ -667,9 +667,11 @@ class UserFeedViewTests(APITestCase):
         User = get_user_model()
         user = baker.make(User)
         user_friend = baker.make(User)
+        user_enemy = baker.make(User)
         post = baker.make(FeedPost, poster=user_friend)
         community = baker.make('community.Community')
         post2 = baker.make(FeedPost, poster=user_friend, community=community)
+        posts = baker.make(FeedPost, likes=5, _quantity=10, poster=user_enemy)
         data = {
             "set_no": 0,
             "user_id": user.id
@@ -678,15 +680,13 @@ class UserFeedViewTests(APITestCase):
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = json.loads(response.content)
-        self.assertEqual(len(response_data), 0)
+        self.assertEqual(len(response_data), 5)
         user.following.add(user_friend)
         user.communities.add(community)
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = json.loads(response.content)
-        self.assertEqual(len(response_data), 2)
-        self.assertEqual(response_data[0]["id"], post.id)
-        self.assertEqual(response_data[1]["id"], post2.id)
+        self.assertEqual(len(response_data), 7)
 
 class CommPostSearchViewTests(APITestCase):
     def test_search_community_posts(self):

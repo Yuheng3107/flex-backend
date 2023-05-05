@@ -108,7 +108,6 @@ Comment Views
 class CommentCreateView(APIView):
     def post(self, request):
         """To create new Comment"""
-        print("hi")
         if not request.user.is_authenticated:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
 
@@ -122,11 +121,9 @@ class CommentCreateView(APIView):
         if request.data["parent_type"] not in ['comment', 'feedpost','exercise', 'exerciseregime']:
             return Response("Parent Type not Commentable", status=status.HTTP_400_BAD_REQUEST)
         ct = None
-        print("hi")
         try:
             ct = ContentType.objects.get(model=request.data["parent_type"])
         except ContentType.DoesNotExist:
-            print(request.data["parent_type"])
             return Response("Please put a valid parent_type", status=status.HTTP_400_BAD_REQUEST)
 
         try:
@@ -675,11 +672,10 @@ class UserFeedView(APIView):
         community_posts = FeedPost.objects.filter(
             community__in=communities, posted_at__range=(start_time, end_time)).order_by("-likes")[0:10]
         recommended_no = 5
-        recommended_friends = FeedPost.objects.filter(posted_at__range=(start_time, end_time)).exclude(poster__in=friends).order_by("-likes")[0:recommended_no]
-        recommended_community = FeedPost.objects.filter(posted_at__range=(start_time, end_time)).exclude(community__in=communities).order_by("-likes")[0:recommended_no]
+        recommended = FeedPost.objects.filter(posted_at__range=(start_time, end_time)).exclude(poster__in=friends, community__in=communities).order_by("-likes")[0:recommended_no]
 
         # stitch
-        results = FeedPostSerializer( friend_posts.union(community_posts, recommended_friends, recommended_community), many=True)
+        results = FeedPostSerializer( friend_posts.union(community_posts, recommended ), many=True)
         return Response(results.data)
 
 
