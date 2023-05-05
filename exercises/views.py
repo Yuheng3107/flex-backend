@@ -43,8 +43,8 @@ class ExerciseRegimeInfoDetailView(APIView):
     def get(self, request, pk):
         """To get data for an Exercise instance"""
         try:
-            exerciseRegimeInfo = ExerciseRegimeInfo.objects.filter(exercise_regime_id=pk)
-            serializer = ExerciseRegimeInfoSerializer(exerciseRegimeInfo, many=True)
+            exercise_regime_info = ExerciseRegimeInfo.objects.filter(exercise_regime_id=pk)
+            serializer = ExerciseRegimeInfoSerializer(exercise_regime_info, many=True)
             return Response(serializer.data)
         except ExerciseRegimeInfo.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
@@ -103,10 +103,15 @@ class ExerciseRegimeStatisticsDetailView(APIView):
     def get(self, request, pk):
         if not request.user.is_authenticated:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
-        exercise_regime_statistics = ExerciseRegimeStatistics.objects.filter(
+        try:
+            exercise_regime_statistics = ExerciseRegimeStatistics.objects.filter(
             exercise_regime=pk).filter(user=request.user.id)
-        serializer = ExerciseRegimeStatisticsSerializer(exercise_regime_statistics[0])
-        return Response(serializer.data)
+            serializer = ExerciseRegimeStatisticsSerializer(exercise_regime_statistics[0])
+            return Response(serializer.data)
+        except:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        
+        
     
 class ExerciseRegimeStatisticsUpdateView(APIView):
     def post(self, request):
