@@ -178,27 +178,11 @@ class ExerciseStatisticsUpdateView(APIView):
         return Response()
 
 
-class ExerciseStatisticsCreateView(APIView):
-    def post(self, request):
-        """View for users to send request to create a new exercise statistic, is idempotent
-        as .add does not create duplicate entries in through table"""
-        authentication_classes = [SessionAuthentication, BasicAuthentication]
-        permission_classes = [IsAuthenticated]
 
-        if not request.user.is_authenticated:
-            return Response("Please log in.", status=status.HTTP_401_UNAUTHORIZED)
-        data = request.data
-        exercise_id = data.get("exercise_id", None)
-        if exercise_id is None:
-            return Response("Please put an exercise id", status=status.HTTP_400_BAD_REQUEST)
-        try:
-            exercise = Exercise.objects.get(pk=exercise_id)
-        except Exercise.DoesNotExist:
-            return Response("Please put a valid exercise id", status=status.HTTP_400_BAD_REQUEST)
-        request.user.exercises.add(exercise)
-        return Response()
-
-
+class ExerciseRegimeStatisticsDeleteView(APIView):
+    def delete(self, request, pk):
+        """To remove m2m """
+        
 class ExerciseRegimeDetailView(APIView):
     def get(self, request, pk):
         """To get details of an exercise regime"""
@@ -433,23 +417,7 @@ class FavoriteExerciseStatisticView(APIView):
         serializer = ExerciseStatisticsSerializer(favorite_exercise_stats)
         return Response(serializer.data)
 
-class ExerciseRegimeStatisticsCreateView(APIView):
-    def post(self, request):
-        authentication_classes = [SessionAuthentication, BasicAuthentication]
-        permission_classes = [IsAuthenticated]
 
-        if not request.user.is_authenticated:
-            return Response("Please log in.", status=status.HTTP_401_UNAUTHORIZED)
-        
-        exercise_regime_id = request.data.get("exercise_regime_id", None)
-        if exercise_regime_id is None:
-            return Response("Please put an exercise_regime id", status=status.HTTP_400_BAD_REQUEST)
-        try:
-            exercise_regime = ExerciseRegime.objects.get(pk=exercise_regime_id)
-        except ExerciseRegime.DoesNotExist:
-            return Response("Please put a valid exercise_regime id", status=status.HTTP_400_BAD_REQUEST)
-        request.user.exercise_regimes.add(exercise_regime)
-        return Response()
 
 class FavoriteExerciseRegimeStatisticView(APIView):
     def post(self, request):
