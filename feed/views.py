@@ -118,16 +118,13 @@ class CommentCreateView(APIView):
                 return Response(f"Please add the {field} field in your request", status=status.HTTP_400_BAD_REQUEST)
 
         # Check for valid content type
+        if request.data["parent_type"] not in ['comment', 'feedpost','exercise', 'exerciseregime']:
+            return Response("Parent Type not Commentable", status=status.HTTP_400_BAD_REQUEST)
         ct = None
         try:
-            ct = ContentType.objects.get(pk=request.data["parent_type"])
+            ct = ContentType.objects.get(model=request.data["parent_type"])
         except ContentType.DoesNotExist:
             return Response("Please put a valid parent_type", status=status.HTTP_400_BAD_REQUEST)
-
-        commentable_models = ['comment', 'feedpost',
-                              'exercise', 'exerciseregime']
-        if ct.model not in commentable_models:
-            return Response("Parent Type not Commentable", status=status.HTTP_400_BAD_REQUEST)
 
         try:
             ct.get_object_for_this_type(pk=request.data["parent_id"])
@@ -424,16 +421,13 @@ class ShareUpdateView(APIView):
             return Response("Editing a post you did not create", status=status.HTTP_401_UNAUTHORIZED)
 
         # check for shared type
+        if request.data["shared_type"] not in ['comment', 'feedpost', 'exercise','exerciseregime', 'user', 'achievement']:
+            return Response("Parent Type not sharable", status=status.HTTP_400_BAD_REQUEST)
         try:
-            ct = ContentType.objects.get(pk=request.data["shared_type"])
+            ct = ContentType.objects.get(model=request.data["shared_type"])
         except ContentType.DoesNotExist:
             return Response("Please put a valid shared_type", status=status.HTTP_400_BAD_REQUEST)
-        # check that model is sharable
-        sharable_models = ['comment', 'feedpost', 'exercise',
-                           'exerciseregime', 'user', 'achievement']
-        if ct.model not in sharable_models:
-            return Response("Parent Type not sharable", status=status.HTTP_400_BAD_REQUEST)
-        # check for shared id
+        
         try:
             ct.get_object_for_this_type(pk=request.data["shared_id"])
         except:

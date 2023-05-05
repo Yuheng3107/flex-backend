@@ -343,7 +343,7 @@ class CommentCreateViewTests(APITestCase):
         ct = ContentType.objects.get_for_model(FeedPost)
         data = {
             "text": text,
-            "parent_type": ct.id,
+            "parent_type": ct.model,
             "parent_id": post.id
         }
         # Check that data cannot be accessed if you are not logged in
@@ -367,7 +367,7 @@ class CommentCreateViewTests(APITestCase):
         # check parent id
         data = {
             "text": text,
-            "parent_type": ct.id,
+            "parent_type": ct.model,
             "parent_id": 696969
         }
         response = self.client.post(url, data, format='json')
@@ -507,7 +507,7 @@ class UpdateShareViewTests(APITestCase):
         data = {
             'id': post.id,
             'shared_id': comment.id,
-            'shared_type': ct.id,
+            'shared_type': ct.model,
         }
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
@@ -520,7 +520,7 @@ class UpdateShareViewTests(APITestCase):
         # test no id
         data = {
             'shared_id': comment.id,
-            'shared_type': ct.id,
+            'shared_type': ct.model,
         }
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -528,7 +528,7 @@ class UpdateShareViewTests(APITestCase):
         data = {
             'id': post.id,
             'shared_id': 6969,
-            'shared_type': ct.id,
+            'shared_type': ct.model,
         }
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
