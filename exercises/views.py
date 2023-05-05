@@ -122,8 +122,6 @@ class ExerciseRegimeStatisticsUpdateView(APIView):
             Post request must contain exercise regime foreign key
            It is a post request, not put because it is not idempotent
         """
-        authentication_classes = [SessionAuthentication, BasicAuthentication]
-        permission_classes = [IsAuthenticated]
         if not request.user.is_authenticated:
             return Response("Please log in", status=status.HTTP_401_UNAUTHORIZED)
         data = request.data
@@ -155,8 +153,6 @@ class ExerciseStatisticsUpdateView(APIView):
             Post request must contain exercise foreign key
            It is a post request, not put because it is not idempotent
         """
-        authentication_classes = [SessionAuthentication, BasicAuthentication]
-        permission_classes = [IsAuthenticated]
         if not request.user.is_authenticated:
             return Response("Please log in", status=status.HTTP_401_UNAUTHORIZED)
         data = request.data
@@ -260,8 +256,6 @@ class ExerciseRegimeUpdateView(APIView):
 class ExerciseRegimeCreateView(APIView):
     def post(self, request):
         """To create new exercise regime, user needs to be authenticated"""
-        authentication_classes = [SessionAuthentication, BasicAuthentication]
-        permission_classes = [IsAuthenticated]
         if not request.user.is_authenticated:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
 
@@ -310,100 +304,68 @@ class ExerciseRegimeUpdateImageView(APIView):
 """
 PRESET CLASSES
 """
-
-
 class ExerciseTagsUpdateView(TagsUpdateView):
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
         self.model = Exercise
-
-
 class ExerciseTagsDeleteView(TagsDeleteView):
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
         self.model = Exercise
-
-
 class ExerciseLikesUpdateView(LikesUpdateView):
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
         self.model = Exercise
-
-
 class ExerciseLikesDeleteView(LikesDeleteView):
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
         self.model = Exercise
-
-
 class ExerciseShareUpdateView(ShareUpdateView):
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
         self.model = Exercise
-
-
 class ExerciseShareDeleteView(ShareDeleteView):
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
         self.model = Exercise
-
-
 class ExerciseMediaUpdateView(MediaUpdateView):
     """Rubbish view"""
 
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
         self.model = Exercise
-
-
 class ExerciseMediaDeleteView(MediaDeleteView):
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
         self.model = Exercise
-
-
 class ExerciseRegimeTagsUpdateView(TagsUpdateView):
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
         self.model = ExerciseRegime
-
-
 class ExerciseRegimeTagsDeleteView(TagsDeleteView):
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
         self.model = ExerciseRegime
-
-
 class ExerciseRegimeLikesUpdateView(LikesUpdateView):
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
         self.model = ExerciseRegime
-
-
 class ExerciseRegimeLikesDeleteView(LikesDeleteView):
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
         self.model = ExerciseRegime
-
-
 class ExerciseRegimeShareUpdateView(ShareUpdateView):
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
         self.model = ExerciseRegime
-
-
 class ExerciseRegimeShareDeleteView(ShareDeleteView):
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
         self.model = ExerciseRegime
-
-
 class ExerciseRegimeMediaUpdateView(MediaUpdateView):
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
         self.model = ExerciseRegime
-
-
 class ExerciseRegimeMediaDeleteView(MediaDeleteView):
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)

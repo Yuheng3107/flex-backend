@@ -32,9 +32,9 @@ class UserPostCreateView(APIView):
         fields = {field: request.data[field]
                   for field in create_fields if field in request.data}
         # Unpack the dictionary and pass them as keyword arguments to create in FeedPost
-        FeedPost.objects.create(poster=request.user, **fields)
+        post = FeedPost.objects.create(poster=request.user, **fields)
 
-        return Response(status=status.HTTP_201_CREATED)
+        return Response(post.id, status=status.HTTP_201_CREATED)
 
 
 class FeedPostUpdateView(APIView):
@@ -138,7 +138,7 @@ class CommentCreateView(APIView):
         post = Comment.objects.create(
             poster=request.user, parent_type=ct, **fields)
 
-        return Response(status=status.HTTP_201_CREATED)
+        return Response(post.id, status=status.HTTP_201_CREATED)
 
 
 class CommentUpdateView(APIView):
@@ -232,7 +232,7 @@ class CommunityPostCreateView(APIView):
         post = FeedPost.objects.create(
             community=community, poster=request.user, **fields)
 
-        return Response(status=status.HTTP_201_CREATED)
+        return Response(post.id, status=status.HTTP_201_CREATED)
 
 
 """
