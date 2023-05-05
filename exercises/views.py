@@ -69,7 +69,7 @@ class ExerciseRegimeInfoUpdateView(APIView):
             return Response(status=status.HTTP_400_BAD_REQUEST)
         for i, exercise in enumerate(request.data["exercises"]):
             try:
-                ExerciseRegimeInfo.objects.create(exercise=exercise, exercise_regime=regime.id, rep_count=request.data["rep_count"][i], set_count=request.data["set_count"][i])
+                ExerciseRegimeInfo.objects.create(exercise=exercise, exercise_regime=regime.id, rep_count=request.data["rep_count"][i], set_count=request.data["set_count"][i], order=i+1)
             except:
                 return Response(status=status.HTTP_400_BAD_REQUEST)
         return Response()
