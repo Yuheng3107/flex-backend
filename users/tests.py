@@ -308,14 +308,14 @@ class UserUpdateProfilePhotoViewTest(APITestCase):
         response = self.client.post(url, data, format="multipart")
         # USED TO BE CHECK FOR WRONG FILETYPE
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        with open(os.path.join(os.getcwd(), "users/2MB_Text.txt"), "rb") as f:
-            long_text_of_2MB_size = f.read()
+        with open(os.path.join(os.getcwd(), "users/10MB_Text.txt"), "rb") as f:
+            long_text_of_10MB_size = f.read()
 
         data = {"photo": SimpleUploadedFile(
-            'test.jpg', long_text_of_2MB_size, content_type='text/plain')}
-        # Test that file of 2MB or more does not work
+            'test.jpg', long_text_of_10MB_size, content_type='text/plain')}
+        # Test that file of 10MB or more does not work
         response = self.client.post(url, data, format="multipart")
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_413_REQUEST_ENTITY_TOO_LARGE)
         data = {"photo": SimpleUploadedFile(
             'test.jpg', b"test", content_type='text/plain')}
         response = self.client.post(url, data, format="multipart")

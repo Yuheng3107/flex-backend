@@ -32,6 +32,9 @@ urlpatterns = [
     path('exercise_regime/delete/share/<int:pk>', ExerciseRegimeShareDeleteView.as_view(), name='delete_exercise_regime_share'),
     path('exercise_regime/update/media/<int:pk>', ExerciseRegimeMediaUpdateView.as_view(), name='update_exercise_regime_media'),
     path('exercise_regime/delete/media/<int:pk>', ExerciseRegimeMediaDeleteView.as_view(), name='delete_exercise_regime_media'),
+    # Exercise Regime Statistics
+    path('exercise_regime_statistics/create', ExerciseRegimeStatisticsCreateView.as_view(), name='create_exercise_regime_statistics'),
+    path('exericse_regime_statistics/<int:pk>', ExerciseRegimeStatisticsDetailView.as_view(), name="exercise_regime_statistics_detail"),
     # Exercise Regime Info
     path('exercise_regime_info/<int:pk>', ExerciseRegimeInfoDetailView.as_view(), name='exercise_regime_info'),
     path('exercise_regime_info/update', ExerciseRegimeInfoUpdateView.as_view(), name='update_exercise_regime_info'),
