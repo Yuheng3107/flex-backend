@@ -105,12 +105,14 @@ class ExerciseRegimeStatisticsDetailView(APIView):
             exercise_regime=pk).filter(user=request.user.id)
         serializer = ExerciseRegimeStatisticsSerializer(exercise_regime_statistics[0])
         return Response(serializer.data)
-
+    
+class ExerciseRegimeStatisticsUpdateView(APIView):
+    pass
 
 class ExerciseStatisticsUpdateView(APIView):
     def post(self, request):
         """ To update (increment) exercise statistics
-            Post request must contain both user and exercise foreign key
+            Post request must contain exercise foreign key
            It is a post request, not put because it is not idempotent
         """
         authentication_classes = [SessionAuthentication, BasicAuthentication]
@@ -118,27 +120,22 @@ class ExerciseStatisticsUpdateView(APIView):
         if not request.user.is_authenticated:
             return Response("Please log in", status=status.HTTP_401_UNAUTHORIZED)
         data = request.data
-        user_id = request.user.id
         exercise_id = data.get("exercise_id", None)
-        if user_id is None or exercise_id is None:
-            return Response("Please put user_id and exercise_id", status=status.HTTP_400_BAD_REQUEST)
+        if exercise_id is None:
+            return Response("Please put exercise_id", status=status.HTTP_400_BAD_REQUEST)
         perfect_reps = data.get("perfect_reps", None)
         total_reps = data.get("total_reps", None)
-        if perfect_reps is None and total_reps is None:
-            return Response("Please put number of perfect reps done", status=status.HTTP_400_BAD_REQUEST)
-
+        if perfect_reps is None or total_reps is None:
+            return Response("Please put number of perfect reps and total reps done", status=status.HTTP_400_BAD_REQUEST)
         try:
             exercise = Exercise.objects.get(pk=exercise_id)
         except Exercise.DoesNotExist:
             return Response("Please put a valid exercise id", status=status.HTTP_400_BAD_REQUEST)
         try:
             exercise_statistics = ExerciseStatistics.objects.get(
-                user=user_id, exercise=exercise_id)
+                user=request.user.id, exercise=exercise_id)
         except:
-            # create a new exercise if doesn't exist
-            request.user.exercises.add(exercise)
-            exercise_statistics = ExerciseStatistics.objects.get(
-                user=user_id, exercise=exercise_id)
+            return Response("Exercise statistics do not exist", status.HTTP_404_NOT_FOUND)
 
         if perfect_reps is not None:
             exercise_statistics.perfect_reps += perfect_reps

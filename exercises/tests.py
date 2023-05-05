@@ -250,9 +250,9 @@ class ExerciseStatisticsUpdateViewTests(APITestCase):
         exercise = baker.make(Exercise)
         global_perfect_reps = exercise.perfect_reps
         global_total_reps = exercise.total_reps
-
         url = reverse('update_exercise_statistics')
         user = baker.make('users.AppUser')
+        exercise_statistic = baker.make(ExerciseStatistics, exercise=exercise, user=user)
         # do not add exercise to user to check if auto creates for nonexistant entry
         perfect_reps_increase = 20
         total_reps_increase = 10
@@ -262,11 +262,11 @@ class ExerciseStatisticsUpdateViewTests(APITestCase):
             "total_reps": total_reps_increase
         }
         # Check that data cannot be accessed if you are not logged in
-        response = self.client.post(url, data, format='json')
+        response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         self.client.force_authenticate(user=user)
         # Check that perfect reps change once user is authenticated
-        response = self.client.post(url, data, format='json')
+        response = self.client.post(url, data)
         self.assertEqual(ExerciseStatistics.objects.filter(user=user.id).filter(
             exercise=exercise.id)[0].perfect_reps, perfect_reps_increase)
         self.assertEqual(ExerciseStatistics.objects.filter(user=user.id).filter(
