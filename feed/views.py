@@ -125,7 +125,7 @@ class CommentCreateView(APIView):
             return Response("Please put a valid parent_type", status=status.HTTP_400_BAD_REQUEST)
 
         commentable_models = ['comment', 'feedpost',
-                               'exercise', 'exerciseregime']
+                              'exercise', 'exerciseregime']
         if ct.model not in commentable_models:
             return Response("Parent Type not Commentable", status=status.HTTP_400_BAD_REQUEST)
 
@@ -236,6 +236,7 @@ class CommunityPostCreateView(APIView):
             community=community, poster=request.user, **fields)
 
         return Response(status=status.HTTP_201_CREATED)
+
 
 """
 PRESETS
@@ -428,7 +429,8 @@ class ShareUpdateView(APIView):
         except ContentType.DoesNotExist:
             return Response("Please put a valid shared_type", status=status.HTTP_400_BAD_REQUEST)
         # check that model is sharable
-        sharable_models = ['comment', 'feedpost', 'exercise', 'exerciseregime', 'user', 'achievement']
+        sharable_models = ['comment', 'feedpost', 'exercise',
+                           'exerciseregime', 'user', 'achievement']
         if ct.model not in sharable_models:
             return Response("Parent Type not sharable", status=status.HTTP_400_BAD_REQUEST)
         # check for shared id
@@ -511,7 +513,7 @@ class MediaUpdateView(APIView):
             return Response("File format is not allowed", status=status.HTTP_406_NOT_ACCEPTABLE)"""
         # File size in Megabytes
         file_size = uploaded_file_object.size / (1024*1024)
-        if file_size > 2:
+        if file_size > 10:
             return Response("File size greater than 2MB", status=status.HTTP_400_BAD_REQUEST)
 
         post.media = uploaded_file_object
@@ -598,6 +600,7 @@ class FeedPostMediaDeleteView(MediaDeleteView):
         super().setup(request, *args, **kwargs)
         self.model = FeedPost
 
+
 class CommentLikesUpdateView(LikesUpdateView):
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
@@ -667,7 +670,7 @@ class UserFeedView(APIView):
             community__in=communities, posted_at__range=(start_time, end_time)).order_by("-likes")[0:10], many=True).data
         followed = list(it.chain(friend_posts, community_posts))
         # recommended
-        recommended_no = min(math.floor(len(followed)/4),3)
+        recommended_no = min(math.floor(len(followed)/4), 3)
         recommended_friends = FeedPostSerializer(FeedPost.objects.filter(posted_at__range=(
             start_time, end_time)).exclude(poster__in=friends).order_by("-likes")[0:recommended_no], many=True).data
         recommended_community = FeedPostSerializer(FeedPost.objects.filter(posted_at__range=(
