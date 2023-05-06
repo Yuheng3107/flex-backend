@@ -332,7 +332,6 @@ class ExerciseRegimeDetailViewTests(APITestCase):
         self.assertEqual(content["likers"], list(exercise_regime.likers.all()))
         self.assertEqual(content["exercises"], exercise_regime.exercises)
 
-
 class ExerciseRegimeDeleteViewTests(APITestCase):
     def test_delete_exercise_regime(self):
         user = baker.make('users.AppUser')
@@ -346,7 +345,6 @@ class ExerciseRegimeDeleteViewTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         with self.assertRaises(ExerciseRegime.DoesNotExist):
             ExerciseRegime.objects.get(pk=exercise_regime.id)
-
 
 class ExerciseRegimeUpdateViewTests(APITestCase):
     def test_update_exercise_regime(self):
@@ -408,8 +406,6 @@ class ExerciseRegimeCreateViewTests(APITestCase):
         self.assertEqual(created_regime.name, name)
         self.assertEqual(created_regime.exercises, exercises)
         self.assertEqual(response.data, created_regime.id)
-        
-
 
 class UpdateLikesViewTests(APITestCase):
     def test_update_likes(self):
