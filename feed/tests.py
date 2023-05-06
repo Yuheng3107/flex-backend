@@ -688,12 +688,12 @@ class UserFeedViewTests(APITestCase):
         self.assertEqual(response_data[0]["id"], post.id)
         self.assertEqual(response_data[1]["id"], post2.id)
 
-class CommPostSearchViewTests(APITestCase):
+class CommunityPostSearchViewTests(APITestCase):
     def test_search_community_posts(self):
         url = reverse('search_community_posts')
         community = baker.make(Community)
-        gay_post = baker.make(FeedPost, community=community, likes=69, title="Gay Post")
-        gay_sex_post = baker.make(FeedPost, community=community, likes=420, title="Gay Sex Post")
+        shag_post = baker.make(FeedPost, community=community, likes=69, title="Shag Post")
+        shaggy_post = baker.make(FeedPost, community=community, likes=420, title="Shaggy Shagabus Post")
         response = self.client.post(url, {})
         # Check that 400 status code is given when no data is sent
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -701,25 +701,50 @@ class CommPostSearchViewTests(APITestCase):
         response = self.client.post(url, {"community_id": community.id})
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         # Check that 400 status code is sent when community_id is missing
-        response = self.client.post(url, {"content": "gay sex"})
+        response = self.client.post(url, {"content": "shag"})
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         # Test that filtering for title works
         data = {
             "community_id": community.id,
-            "content": "gay sex"
+            "content": "shaggy"
         }
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = json.loads(response.content)
-        self.assertEqual(response_data[0]['title'], gay_sex_post.title)
-        self.assertEqual(response_data[0]["likes"], gay_sex_post.likes)
-        data["content"] = "gay"
+        self.assertEqual(response_data[0]['title'], shaggy_post.title)
+        self.assertEqual(response_data[0]["likes"], shaggy_post.likes)
+        data["content"] = "Post"
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = json.loads(response.content)
-        self.assertEqual(response_data[0]['title'], gay_sex_post.title)
-        self.assertEqual(response_data[0]["likes"], gay_sex_post.likes)
-        self.assertEqual(response_data[1]['title'], gay_post.title)
-        self.assertEqual(response_data[1]['likes'], gay_post.likes)
+        self.assertEqual(response_data[0]["title"], shaggy_post.title)
+        self.assertEqual(response_data[0]["likes"], shaggy_post.likes)
+        self.assertEqual(response_data[1]['title'], shag_post.title)
+        self.assertEqual(response_data[1]['likes'], shag_post.likes)
         
-        
+class FeedPostSearchViewTests(APITestCase):
+    def test_get_feed_posts(self):
+        url = reverse('search_feed_posts')
+        community = baker.make(Community)
+        shag_post = baker.make(FeedPost, community=community, likes=69, title="Shag Post")
+        shaggy_post = baker.make(FeedPost, likes=420, title="Shaggy Shagabus Post")
+        response = self.client.post(url, {})
+        # Check that 400 status code is given when no data is sent
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        # Check that 400 status code is sent when content is missing
+        data = {
+            "content": "shaggy"
+        }
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = json.loads(response.content)
+        self.assertEqual(response_data[0]['title'], shaggy_post.title)
+        self.assertEqual(response_data[0]["likes"], shaggy_post.likes)
+        data["content"] = "Post"
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = json.loads(response.content)
+        self.assertEqual(response_data[0]["title"], shaggy_post.title)
+        self.assertEqual(response_data[0]["likes"], shaggy_post.likes)
+        self.assertEqual(response_data[1]['title'], shag_post.title)
+        self.assertEqual(response_data[1]['likes'], shag_post.likes)
