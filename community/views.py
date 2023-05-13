@@ -31,7 +31,7 @@ class CommunityCreateView(APIView):
         # Unpack the dictionary and pass them as keyword arguments to create in UserPost
         community = Community.objects.create(created_by=request.user, **fields)
         request.user.communities.add(community)
-        cm = CommunityMembers.objects.get(user=request.user)
+        cm = CommunityMembers.objects.get(user=request.user, community=community)
         cm.moderator_level = 3
         cm.save()
         return Response(status=status.HTTP_201_CREATED)
