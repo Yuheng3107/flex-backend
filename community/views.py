@@ -34,7 +34,7 @@ class CommunityCreateView(APIView):
         cm = CommunityMembers.objects.get(user=request.user, community=community)
         cm.moderator_level = 3
         cm.save()
-        return Response(status=status.HTTP_201_CREATED)
+        return Response(community.id, status=status.HTTP_201_CREATED)
 
 class CommunityUpdateView(APIView):
     def put(self, request):

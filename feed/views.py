@@ -8,10 +8,7 @@ from community.models import Community  # type: ignore
 from .serializers import CommentSerializer, FeedPostSerializer, FeedPostSerializer
 
 from datetime import datetime, timedelta, timezone
-import itertools as it
-import math
 from django.contrib.auth import get_user_model
-from django.db.models import Q
 from django.contrib.postgres.search import SearchVector
 # Create your views here.
 
