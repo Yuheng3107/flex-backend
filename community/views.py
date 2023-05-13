@@ -73,22 +73,18 @@ class CommunityUpdateView(APIView):
         return Response(status=status.HTTP_200_OK)
 
 class CommunityUpdateBannerView(APIView):
-    def post(self, request):
+    def post(self, request, pk):
         parser_classes = [FormParser, MultiPartParser]
         
         if not request.user.is_authenticated:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         
-        check_fields = ["id"]
-        # Check that all the required data is in the put request
-        for field in check_fields:
-            if field not in request.data:
-                return Response(f"Please add the {field} field in your request", status=status.HTTP_400_BAD_REQUEST)
+        
 
         # Check that community exists
         community = None
         try:
-            community = Community.objects.get(pk=request.data["id"])
+            community = Community.objects.get(pk=pk)
         except Community.DoesNotExist:
             return Response("Please put a valid Community id", status=status.HTTP_404_NOT_FOUND)
 
@@ -108,29 +104,23 @@ class CommunityUpdateBannerView(APIView):
             return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
         # File size in Megabytes
         file_size = uploaded_file_object.size / (1024*1024)
-        if file_size > 2:
-            return Response("File size greater than 2MB", status=status.HTTP_400_BAD_REQUEST)
+        if file_size > 10:
+            return Response("File size greater than 10MB", status=status.HTTP_400_BAD_REQUEST)
         community.banner = uploaded_file_object
         community.save()
         return Response()
 
 class CommunityUpdatePhotoView(APIView):
-    def post(self, request):
+    def post(self, request, pk):
         parser_classes = [FormParser, MultiPartParser]
         
         if not request.user.is_authenticated:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         
-        check_fields = ["id"]
-        # Check that all the required data is in the put request
-        for field in check_fields:
-            if field not in request.data:
-                return Response(f"Please add the {field} field in your request", status=status.HTTP_400_BAD_REQUEST)
-
         # Check that community exists
         community = None
         try:
-            community = Community.objects.get(pk=request.data["id"])
+            community = Community.objects.get(pk=pk)
         except Community.DoesNotExist:
             return Response("Please put a valid Community id", status=status.HTTP_404_NOT_FOUND)
 
@@ -150,8 +140,8 @@ class CommunityUpdatePhotoView(APIView):
             return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
         # File size in Megabytes
         file_size = uploaded_file_object.size / (1024*1024)
-        if file_size > 2:
-            return Response("File size greater than 2MB", status=status.HTTP_400_BAD_REQUEST)
+        if file_size > 10:
+            return Response("File size greater than 10MB", status=status.HTTP_400_BAD_REQUEST)
         community.community_photo = uploaded_file_object
         community.save()
         return Response()
