@@ -20,17 +20,15 @@ class CommunityCreateView(APIView):
         for field in check_fields:
             if field not in request.data:
                 return Response(f"Please add the {field} field in your request", status=status.HTTP_400_BAD_REQUEST)
-
-
-        # if "media" in request.data(TODO):
-            # Check for media type
-            # if request.data["media"]
         
         create_fields = ["name", "description", "privacy_level"]
         fields = {field: request.data[field] for field in create_fields if field in request.data}
         # Unpack the dictionary and pass them as keyword arguments to create in UserPost
         community = Community.objects.create(created_by=request.user, **fields)
+        # add the user to community
         request.user.communities.add(community)
+        community.member_count += 1
+        community.save()
         cm = CommunityMembers.objects.get(user=request.user, community=community)
         cm.moderator_level = 3
         cm.save()
@@ -96,7 +94,7 @@ class CommunityUpdateBannerView(APIView):
         if member.moderator_level < 1:
             return Response("Editing a community you are not a moderator of", status=status.HTTP_401_UNAUTHORIZED) 
         
-        uploaded_file_object = request.FILES.get("media", None)
+        uploaded_file_object = request.FILES.get("photo", None)
         # Check that profile photo is indeed uploaded
         if uploaded_file_object is None:
             return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
@@ -132,7 +130,7 @@ class CommunityUpdatePhotoView(APIView):
         if member.moderator_level < 1:
             return Response("Editing a community you are not a moderator of", status=status.HTTP_401_UNAUTHORIZED) 
         
-        uploaded_file_object = request.FILES.get("media", None)
+        uploaded_file_object = request.FILES.get("photo", None)
         # Check that profile photo is indeed uploaded
         if uploaded_file_object is None:
             return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
