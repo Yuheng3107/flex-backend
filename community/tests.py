@@ -236,8 +236,6 @@ class CommunityMembersUpdateViewTests(APITestCase):
         
 class CommunityUpdatePhotoViewTest(APITestCase):
     def test_upload_photo(self):
-        
-        
         user = baker.make('users.AppUser')
         community = baker.make(Community)
         user.communities.add(community)
@@ -263,15 +261,14 @@ class CommunityUpdatePhotoViewTest(APITestCase):
 
 class CommunityUpdateBannerViewTest(APITestCase):
     def test_upload_photo(self):
-        url = reverse('update_community_banner')
-        
         user = baker.make('users.AppUser')
         community = baker.make(Community)
+        url = reverse('update_community_banner', kwargs={"pk": community.id})
         user.communities.add(community)
         cm = CommunityMembers.objects.get()
         cm.moderator_level = 3
         cm.save()
-        data = {'id': community.id, "photo": SimpleUploadedFile('test.mp4', b'test', content_type='text/plain')}
+        data = { "photo": SimpleUploadedFile('test.mp4', b'test', content_type='text/plain')}
         # Need to have multipart format to enable file uploads
         response = self.client.post(url, data, format="multipart")
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
