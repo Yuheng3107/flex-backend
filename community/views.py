@@ -79,8 +79,6 @@ class CommunityUpdateBannerView(APIView):
         if not request.user.is_authenticated:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         
-        
-
         # Check that community exists
         community = None
         try:
