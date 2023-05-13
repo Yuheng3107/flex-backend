@@ -98,7 +98,7 @@ class CommunityUpdateBannerView(APIView):
         if member.moderator_level < 1:
             return Response("Editing a community you are not a moderator of", status=status.HTTP_401_UNAUTHORIZED) 
         
-        uploaded_file_object = request.FILES.get("photo", None)
+        uploaded_file_object = request.FILES.get("media", None)
         # Check that profile photo is indeed uploaded
         if uploaded_file_object is None:
             return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
@@ -134,7 +134,7 @@ class CommunityUpdatePhotoView(APIView):
         if member.moderator_level < 1:
             return Response("Editing a community you are not a moderator of", status=status.HTTP_401_UNAUTHORIZED) 
         
-        uploaded_file_object = request.FILES.get("photo", None)
+        uploaded_file_object = request.FILES.get("media", None)
         # Check that profile photo is indeed uploaded
         if uploaded_file_object is None:
             return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
