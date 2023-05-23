@@ -9,7 +9,7 @@ User = get_user_model()
 
 class Post(models.Model):
     poster = models.ForeignKey(User, on_delete=models.SET_DEFAULT, default=None, null=True, blank=True, related_name='%(class)s_poster')
-    posted_at = models.DateTimeField(auto_now=True)
+    posted_at = models.DateTimeField(auto_now_add=True)
     #likes
     likes = models.PositiveIntegerField(default=0)
     likers = models.ManyToManyField(User, related_name='%(class)s_likers', blank=True)
