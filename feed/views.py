@@ -13,7 +13,7 @@ from django.contrib.postgres.search import SearchVector
 # Create your views here.
 
 
-class UserPostCreateView(APIView):
+class FeedPostCreateView(APIView):
     def post(self, request):
         """To create new user post"""
         if not request.user.is_authenticated:

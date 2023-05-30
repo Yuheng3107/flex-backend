@@ -212,9 +212,9 @@ class FeedPostCommentTestCase(TestCase):
 API TestCase
 """
 class FeedPostCreateViewTests(APITestCase):
-    def test_create_user_post(self):
-        """Ensure we can create user_post in FeedPost Model"""
-        url = reverse('create_user_post')
+    def test_create_feed_post(self):
+        """Ensure we can create FeedPost in FeedPost Model"""
+        url = reverse('create_feed_post')
         User = get_user_model()
         user = User.objects.create_user(
             email='testuser@gmail.com', password='12345')

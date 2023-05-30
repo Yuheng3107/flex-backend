@@ -2,6 +2,7 @@ from django.urls import path
 from .views import *
 urlpatterns = [
      path('feed', UserFeedView.as_view(), name='user_feed'),
+     path('feed_post/create', FeedPostCreateView.as_view(), name='create_feed_post'),
      path('feed_post/<int:pk>', FeedPostDetailView.as_view(),
           name='feed_post_detail'),
      path('feed_post/list', FeedPostListView.as_view(), name='feed_post_list'),
@@ -40,8 +41,6 @@ urlpatterns = [
      path('comment/delete/likes/<int:pk>',
           CommentLikesDeleteView.as_view(), name='delete_comment_likes'),
      path('comment/list/likes', CommentLikesListView.as_view(), name='comment_likes_list'),
-     # UserPost
-     path('user_post/create', UserPostCreateView.as_view(), name='create_user_post'),
      # Community Posts
      path('community_post/create', CommunityPostCreateView.as_view(),
           name='create_community_post'),
