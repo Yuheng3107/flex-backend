@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 
 from pathlib import Path
 import os
+from corsheaders.defaults import default_headers
 
 USE_S3 = os.getenv('USE_S3') == 'TRUE'
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -176,6 +177,7 @@ USE_TZ = True
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOW_HEADERS = [
+    *default_headers,
 'access-control-allow-origin',
 
 ]
