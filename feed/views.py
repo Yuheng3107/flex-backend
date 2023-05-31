@@ -520,10 +520,10 @@ class MediaUpdateView(APIView):
                            ".webp", ".mp4", ".mov", ".webm", ".gif"]
         if file_name[start:] not in allowed_formats:
             return Response("File format is not allowed", status=status.HTTP_406_NOT_ACCEPTABLE)"""
-        """# File size in Megabytes
+        # File size in Megabytes
         file_size = uploaded_file_object.size / (1024*1024)
         if file_size > 500:
-            return Response("File size greater than 500MB", status=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE)"""
+            return Response("File size greater than 500MB", status=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE)
 
         post.media = uploaded_file_object
         post.save()
