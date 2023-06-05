@@ -9,10 +9,6 @@ services:
     container_name: django_server
     env_file:
       - ./aws.env
-
-  nginx:
-    image: yuheng3107/nginx
-    ports:
-      - 80:80
-    depends_on:
-      - web
+  migration:
+    image: yuheng3107/django-server
+    command: python manage.py migrate --noinput
